@@ -119,6 +119,38 @@ var _ = Describe("Cluster creation with vSphere validations", func() {
 	})
 })
 
+var _ = FDescribe("clusterctl upgrade spec from v1alpha3 to v1beta1 test", func() {
+	By("Upgrading cluster from v1alpha3 to v1beta1 using clusterctl")
+	capi_e2e.ClusterctlUpgradeSpec(context.TODO(), func() capi_e2e.ClusterctlUpgradeSpecInput {
+		return capi_e2e.ClusterctlUpgradeSpecInput{
+			E2EConfig:                 e2eConfig,
+			ClusterctlConfigPath:      clusterctlConfigPath,
+			BootstrapClusterProxy:     bootstrapClusterProxy,
+			ArtifactFolder:            artifactFolder,
+			SkipCleanup:               skipCleanup,
+			InitWithBinary:            e2eConfig.GetVariable("INIT_WITH_BINARY_V1ALPHA3"),
+			InitWithProvidersContract: "v1alpha3",
+			MgmtFlavor:                "remote-management-cluster",
+		}
+	})
+})
+
+var _ = Describe("clusterctl upgrade spec from v1alpha4 to v1beta1 test", func() {
+	By("Upgrading cluster from v1alpha4 to v1beta1 using clusterctl")
+	capi_e2e.ClusterctlUpgradeSpec(context.TODO(), func() capi_e2e.ClusterctlUpgradeSpecInput {
+		return capi_e2e.ClusterctlUpgradeSpecInput{
+			E2EConfig:                 e2eConfig,
+			ClusterctlConfigPath:      clusterctlConfigPath,
+			BootstrapClusterProxy:     bootstrapClusterProxy,
+			ArtifactFolder:            artifactFolder,
+			SkipCleanup:               skipCleanup,
+			InitWithBinary:            e2eConfig.GetVariable("INIT_WITH_BINARY_V1ALPHA4"),
+			InitWithProvidersContract: "v1alpha4",
+			MgmtFlavor:                "remote-management-cluster",
+		}
+	})
+})
+
 func defaultConfigCluster(clusterName, namespace string) clusterctl.ConfigClusterInput {
 	return clusterctl.ConfigClusterInput{
 		LogFolder:                filepath.Join(artifactFolder, "clusters", bootstrapClusterProxy.GetName()),

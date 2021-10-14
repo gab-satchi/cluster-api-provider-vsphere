@@ -45,7 +45,7 @@ providers:
         value: "https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.4/core-components.yaml"
         type: "url"
         files:
-          - sourcePath: "./shared/v1alpha4/metadata.yaml"
+          - sourcePath: "../data/shared/metadata.yaml"
         replacements:
           - old: "imagePullPolicy: Always"
             new: "imagePullPolicy: IfNotPresent"
@@ -127,10 +127,12 @@ providers:
     versions:
       - name: v0.7.10
         value: https://github.com/kubernetes-sigs/cluster-api-provider-vsphere/releases/download/v0.7.10/infrastructure-components.yaml
+        type: url
         files:
           - sourcePath: "../../../test/e2e/data/infrastructure-vsphere/capi-upgrades/v1alpha3/cluster-template.yaml"
           - sourcePath: "../../../metadata.yaml"
       - name: v0.8.1
+        type: url
         value: https://github.com/kubernetes-sigs/cluster-api-provider-vsphere/releases/download/v0.8.1/infrastructure-components.yaml
         files:
           - sourcePath: "../../../test/e2e/data/infrastructure-vsphere/capi-upgrades/v1alpha4/cluster-template.yaml"
@@ -146,6 +148,8 @@ providers:
         files:
           # Add a cluster template
           - sourcePath: "../../../test/e2e/data/infrastructure-vsphere/cluster-template.yaml"
+          - sourcePath: "../../../test/e2e/data/infrastructure-vsphere/capi-upgrades/v1alpha3/cluster-template.yaml"
+            targetName: "cluster-template-remote-management-cluster.yaml"
           - sourcePath: "../../../metadata.yaml"
 
 variables:
@@ -167,7 +171,7 @@ variables:
   VSPHERE_TEMPLATE: "ubuntu-1804-kube-v1.18.2"
   INIT_WITH_BINARY_V1ALPHA3: "https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.3.23/clusterctl-{OS}-{ARCH}"
   INIT_WITH_BINARY_V1ALPHA4: "https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.4/clusterctl-{OS}-{ARCH}"
-  INIT_WITH_KUBERNETES_VERSION: "v1.21.2"
+  INIT_WITH_KUBERNETES_VERSION: "v1.20.5"
   # Also following variables are required but it is recommended to use env variables to avoid disclosure of sensitive data
   # VSPHERE_SSH_AUTHORIZED_KEY:
   # VSPHERE_PASSWORD:
@@ -178,7 +182,7 @@ variables:
 intervals:
   default/wait-controllers: ["5m", "10s"]
   default/wait-cluster: ["5m", "10s"]
-  default/wait-control-plane: ["5m", "10s"]
+  default/wait-control-plane: ["60m", "10s"]
   default/wait-worker-nodes: ["5m", "10s"]
   default/wait-delete-cluster: ["5m", "10s"]
   default/wait-machine-upgrade: ["15m", "1m"]

@@ -6,4 +6,3 @@ resources:
 patchesStrategicMerge:
   - cluster-resource-set-label.yaml
   - cluster-network-CIDR.yaml
-  - image-injection.yaml

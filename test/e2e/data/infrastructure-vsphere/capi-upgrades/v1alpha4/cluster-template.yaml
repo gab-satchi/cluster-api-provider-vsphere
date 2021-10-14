@@ -67,6 +67,10 @@ metadata:
   namespace: '${NAMESPACE}'
 spec:
   kubeadmConfigSpec:
+    preKubeadmCommands:
+    - mkdir -p /opt/cluster-api
+    - curl "https://storage.googleapis.com/capv-ci/sha256:1b375c9f8a7cab0c506e9af0263feab78c06367c97c416389dddabaf0dfbb77c" -o /opt/cluster-api/image.tar
+    - ctr -n k8s.io images import /opt/cluster-api/image.tar
     clusterConfiguration:
       apiServer:
         extraArgs:
@@ -101,7 +105,7 @@ spec:
               value: "10"
             - name: vip_retryperiod
               value: "2"
-            image: plndr/kube-vip:0.3.2
+            image: projects-stg.registry.vmware.com/tkg/kube-vip:v0.3.3_vmware.1
             imagePullPolicy: IfNotPresent
             name: kube-vip
             resources: {}
