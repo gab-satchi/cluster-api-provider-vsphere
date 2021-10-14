@@ -119,6 +119,7 @@ var _ = Describe("Cluster creation with vSphere validations", func() {
 	})
 })
 
+// TODO: un-focus test
 var _ = FDescribe("clusterctl upgrade spec from v1alpha3 to v1beta1 test", func() {
 	By("Upgrading cluster from v1alpha3 to v1beta1 using clusterctl")
 	capi_e2e.ClusterctlUpgradeSpec(context.TODO(), func() capi_e2e.ClusterctlUpgradeSpecInput {

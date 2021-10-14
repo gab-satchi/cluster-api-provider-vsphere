@@ -47,7 +47,7 @@ spec:
       resourcePool: '${VSPHERE_RESOURCE_POOL}'
       server: '${VSPHERE_SERVER}'
   controlPlaneEndpoint:
-    host: ${CONTROL_PLANE_ENDPOINT_IP}
+    host: ${WORKLOAD_CONTROL_PLANE_ENDPOINT_IP}
     port: 6443
   identityRef:
     kind: Secret
@@ -116,7 +116,7 @@ spec:
             - name: vip_leaderelection
               value: "true"
             - name: vip_address
-              value: ${CONTROL_PLANE_ENDPOINT_IP}
+              value: ${WORKLOAD_CONTROL_PLANE_ENDPOINT_IP}
             - name: vip_interface
               value: eth0
             - name: vip_leaseduration
@@ -164,9 +164,6 @@ spec:
     - echo "127.0.0.1   localhost" >>/etc/hosts
     - echo "127.0.0.1   {{ ds.meta_data.hostname }}" >>/etc/hosts
     - echo "{{ ds.meta_data.hostname }}" >/etc/hostname
-    - mkdir -p /opt/cluster-api
-    - curl "https://storage.googleapis.com/capv-ci/sha256:1b375c9f8a7cab0c506e9af0263feab78c06367c97c416389dddabaf0dfbb77c" -o /opt/cluster-api/image.tar
-    - ctr -n k8s.io images import /opt/cluster-api/image.tar
     useExperimentalRetryJoin: true
     users:
     - name: capv
@@ -196,9 +193,6 @@ spec:
       - echo "127.0.0.1   localhost" >>/etc/hosts
       - echo "127.0.0.1   {{ ds.meta_data.hostname }}" >>/etc/hosts
       - echo "{{ ds.meta_data.hostname }}" >/etc/hostname
-      - mkdir -p /opt/cluster-api
-      - curl "https://storage.googleapis.com/capv-ci/sha256:1b375c9f8a7cab0c506e9af0263feab78c06367c97c416389dddabaf0dfbb77c" -o /opt/cluster-api/image.tar
-      - ctr -n k8s.io images import /opt/cluster-api/image.tar
       users:
       - name: capv
         sshAuthorizedKeys:

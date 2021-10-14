@@ -80,6 +80,7 @@ sed "s/IPCLAIM_NAME/${IPCLAIM_NAME}/" "${REPO_ROOT}/hack/ipclaim-template.yaml" 
 IPADDRESS_NAME=$(kubectl --kubeconfig=${KUBECONFIG} get ipclaim "${IPCLAIM_NAME}" -o=jsonpath='{@.status.address.name}')
 CONTROL_PLANE_ENDPOINT_IP=$(kubectl --kubeconfig=${KUBECONFIG} get ipaddresses "${IPADDRESS_NAME}" -o=jsonpath='{@.spec.address}')
 export CONTROL_PLANE_ENDPOINT_IP
+# TODO: acquire IPs for WORKLOAD_CONTROL_PLANE_ENDPOINT_IP
 
 echo "Acquired Control Plane IP: $CONTROL_PLANE_ENDPOINT_IP"
 
@@ -95,11 +96,8 @@ E2E_IMAGE_SHA=$(docker inspect --format='{{index .Id}}' gcr.io/k8s-staging-clust
 export E2E_IMAGE_SHA
 gsutil cp "$ARTIFACTS"/tempContainers/image.tar gs://capv-ci/"$E2E_IMAGE_SHA"
 
-echo "$E2E_IMAGE_SHA"
-
 # Run e2e tests
-# TODO: re-enable tests
-#make e2e
+make e2e
 
 
 
