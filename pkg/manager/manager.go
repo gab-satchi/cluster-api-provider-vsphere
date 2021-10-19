@@ -27,9 +27,9 @@ import (
 	bootstrapv1 "sigs.k8s.io/cluster-api/bootstrap/kubeadm/api/v1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	infrav1a3 "sigs.k8s.io/cluster-api-provider-vsphere/api/v1alpha3"
-	infrav1a4 "sigs.k8s.io/cluster-api-provider-vsphere/api/v1alpha4"
-	infrav1b1 "sigs.k8s.io/cluster-api-provider-vsphere/api/v1beta1"
+	infrav1a3 "sigs.k8s.io/cluster-api-provider-vsphere/apis/v1alpha3"
+	infrav1a4 "sigs.k8s.io/cluster-api-provider-vsphere/apis/v1alpha4"
+	infrav1b1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/v1beta1"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/context"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/record"
 )
