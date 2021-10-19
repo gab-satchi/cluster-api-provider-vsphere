@@ -113,7 +113,7 @@ help: ## Display this help
 .PHONY: test
 test: $(GOVC)
 	$(MAKE) generate lint-go
-	source ./hack/fetch_ext_bins.sh; fetch_tools; setup_envs; export GOVC_BIN_PATH=$(GOVC); go test -v ./api/... ./controllers/... ./pkg/...
+	source ./hack/fetch_ext_bins.sh; fetch_tools; setup_envs; export GOVC_BIN_PATH=$(GOVC); go test -v ./apis/... ./controllers/... ./pkg/...
 
 .PHONY: e2e-image
 e2e-image: ## Build the e2e manager image
@@ -218,19 +218,19 @@ generate: ## Generate code
 generate-go: $(CONTROLLER_GEN) $(CONVERSION_GEN) ## Runs Go related generate targets
 	go generate ./...
 	$(CONTROLLER_GEN) \
-		paths=./api/... \
+		paths=./apis/... \
 		object:headerFile=./hack/boilerplate/boilerplate.generatego.txt
 
 	$(CONVERSION_GEN) \
-		--input-dirs=./api/v1alpha3 \
-		--input-dirs=./api/v1alpha4 \
+		--input-dirs=./apis/v1alpha3 \
+		--input-dirs=./apis/v1alpha4 \
 		--output-file-base=zz_generated.conversion $(OUTPUT_BASE) \
 		--go-header-file=./hack/boilerplate/boilerplate.generatego.txt
 
 .PHONY: generate-manifests
 generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 	$(CONTROLLER_GEN) \
-		paths=./api/... \
+		paths=./apis/... \
 		crd:crdVersions=v1 \
 		output:crd:dir=$(CRD_ROOT) \
 		output:webhook:dir=$(WEBHOOK_ROOT) \
