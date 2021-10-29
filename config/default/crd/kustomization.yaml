@@ -3,9 +3,6 @@ commonLabels:
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# This kustomization.yaml is not intended to be run by itself,
-# since it depends on service name and namespace that are out of this kustomize package.
-# It should be run by config/default
 resources:
 - bases/infrastructure.cluster.x-k8s.io_vspheremachines.yaml
 - bases/infrastructure.cluster.x-k8s.io_vsphereclusters.yaml
@@ -15,9 +12,6 @@ resources:
 - bases/infrastructure.cluster.x-k8s.io_vspheredeploymentzones.yaml
 - bases/infrastructure.cluster.x-k8s.io_vsphereclusteridentities.yaml
 - bases/infrastructure.cluster.x-k8s.io_vsphereclustertemplates.yaml
-- bases/vmware.infrastructure.cluster.x-k8s.io_vspheremachines.yaml
-- bases/vmware.infrastructure.cluster.x-k8s.io_vsphereclusters.yaml
-- bases/vmware.infrastructure.cluster.x-k8s.io_vspheremachinetemplates.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patches:

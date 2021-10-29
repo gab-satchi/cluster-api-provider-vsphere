@@ -30,6 +30,7 @@ import (
 	infrav1a3 "sigs.k8s.io/cluster-api-provider-vsphere/apis/v1alpha3"
 	infrav1a4 "sigs.k8s.io/cluster-api-provider-vsphere/apis/v1alpha4"
 	infrav1b1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/v1beta1"
+	vmwarev1b1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/context"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/record"
 )
@@ -54,6 +55,7 @@ func New(opts Options) (Manager, error) {
 	_ = infrav1a4.AddToScheme(opts.Scheme)
 	_ = infrav1b1.AddToScheme(opts.Scheme)
 	_ = bootstrapv1.AddToScheme(opts.Scheme)
+	_ = vmwarev1b1.AddToScheme(opts.Scheme)
 	// +kubebuilder:scaffold:scheme
 
 	podName, err := os.Hostname()
