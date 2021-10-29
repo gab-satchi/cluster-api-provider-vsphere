@@ -89,7 +89,7 @@ func init() {
 	root := path.Join(path.Dir(filename), "..", "..")
 
 	crdPaths := []string{
-		filepath.Join(root, "config", "crd", "bases"),
+		filepath.Join(root, "config", "default", "crd", "bases"),
 	}
 
 	// append CAPI CRDs path

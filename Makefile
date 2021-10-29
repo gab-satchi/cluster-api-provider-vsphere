@@ -63,7 +63,8 @@ endif
 
 # Allow overriding manifest generation destination directory
 MANIFEST_ROOT ?= ./config
-CRD_ROOT ?= $(MANIFEST_ROOT)/crd/bases
+CRD_ROOT ?= $(MANIFEST_ROOT)/default/crd/bases
+SUPERVISOR_CRD_ROOT ?= $(MANIFEST_ROOT)/supervisor/crd
 WEBHOOK_ROOT ?= $(MANIFEST_ROOT)/webhook
 RBAC_ROOT ?= $(MANIFEST_ROOT)/rbac
 GC_KIND ?= true
@@ -230,7 +231,9 @@ generate-go: $(CONTROLLER_GEN) $(CONVERSION_GEN) ## Runs Go related generate tar
 .PHONY: generate-manifests
 generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 	$(CONTROLLER_GEN) \
-		paths=./apis/... \
+		paths=./apis/v1alpha3 \
+		paths=./apis/v1alpha4 \
+		paths=./apis/v1beta1 \
 		crd:crdVersions=v1 \
 		output:crd:dir=$(CRD_ROOT) \
 		output:webhook:dir=$(WEBHOOK_ROOT) \
@@ -239,7 +242,10 @@ generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 		paths=./controllers/... \
 		output:rbac:dir=$(RBAC_ROOT) \
 		rbac:roleName=manager-role
-
+	$(CONTROLLER_GEN) \
+		paths=./apis/vmware/v1beta1 \
+		crd:crdVersions=v1 \
+		output:crd:dir=$(SUPERVISOR_CRD_ROOT) \
 ## --------------------------------------
 ## Release
 ## --------------------------------------
@@ -287,6 +293,7 @@ manifests:  $(STAGE)-version-check $(STAGE)-flavors $(MANIFEST_DIR) $(BUILD_DIR)
 	sed -i'' -e 's@imagePullPolicy: .*@imagePullPolicy: '"$(PULL_POLICY)"'@' $(BUILD_DIR)/config/default/manager_pull_policy.yaml
 	sed -i'' -e 's@image: .*@image: '"$(IMAGE)"'@' $(BUILD_DIR)/config/default/manager_image_patch.yaml
 	"$(KUSTOMIZE)" build $(BUILD_DIR)/config/default > $(MANIFEST_DIR)/infrastructure-components.yaml
+	"$(KUSTOMIZE)" build $(BUILD_DIR)/config/supervisor > $(MANIFEST_DIR)/infrastructure-components-supervisor.yaml
 
 ## --------------------------------------
 ## Cleanup / Verification
