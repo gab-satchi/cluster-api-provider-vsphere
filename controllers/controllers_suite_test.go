@@ -68,7 +68,7 @@ func setup() {
 
 	testEnv = helpers.NewTestEnvironment()
 
-	if err := AddClusterControllerToManager(testEnv.GetContext(), testEnv.Manager); err != nil {
+	if err := AddClusterControllerToManager(testEnv.GetContext(), testEnv.Manager, &infrav1.VSphereCluster{}); err != nil {
 		panic(fmt.Sprintf("unable to setup VsphereCluster controller: %v", err))
 	}
 	if err := AddMachineControllerToManager(testEnv.GetContext(), testEnv.Manager); err != nil {
