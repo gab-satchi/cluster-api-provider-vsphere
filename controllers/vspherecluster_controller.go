@@ -22,6 +22,9 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/util"
+
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	clusterutilv1 "sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/cluster-api/util/annotations"
@@ -78,7 +81,49 @@ func AddClusterControllerToManager(ctx *context.ControllerManagerContext, mgr ma
 	}
 
 	if supervisorBased {
-		return errors.New("supervisor not supported yet")
+		// TODO: initialize services
+		reconciler := supervisorClusterReconciler{
+			ControllerContext: controllerContext,
+		}
+		return ctrl.NewControllerManagedBy(mgr).
+			Named(controllerNameShort).
+			For(clusterControlledType).
+			Watches(
+				&source.Kind{Type: &vmwarev1beta1.VSphereMachine{}},
+				handler.EnqueueRequestsFromMapFunc(func(o client.Object) []reconcile.Request {
+					vsphereMachine, ok := o.(*vmwarev1beta1.VSphereMachine)
+					if !ok {
+						reconciler.Logger.Error(errors.New("did not get vspheremachine"), "got", fmt.Sprintf("%T", o))
+						return nil
+					}
+					if !util.IsControlPlaneMachine(vsphereMachine) {
+						reconciler.Logger.V(5).Info("rejecting vsphereCluster reconcile as not CP machine", "machineName", vsphereMachine.Name)
+						return nil
+					}
+					// Only currently interested in updating Cluster from vsphereMachines with IP addresses
+					if vsphereMachine.Status.IPAddr == "" {
+						reconciler.Logger.V(5).Info("rejecting vsphereCluster reconcile as no IP address", "machineName", vsphereMachine.Name)
+						return nil
+					}
+
+					cluster, err := util.GetVSphereClusterFromVSphereMachine(reconciler, reconciler.Client, vsphereMachine)
+					if err != nil {
+						reconciler.Logger.Error(err, "failed to get cluster", "machine", vsphereMachine.Name, "namespace", vsphereMachine.Namespace)
+						return nil
+					}
+
+					// Can add further filters on Cluster state so that we don't keep reconciling Cluster
+					reconciler.Logger.V(3).Info("triggering VSphereCluster reconcile from VSphereMachine", "machineName", vsphereMachine.Name)
+					return []ctrl.Request{{
+						NamespacedName: types.NamespacedName{
+							Namespace: cluster.Namespace,
+							Name:      cluster.Name,
+						},
+					}}
+				}),
+			).
+			WithOptions(controller.Options{MaxConcurrentReconciles: ctx.MaxConcurrentReconciles}).
+			Complete(reconciler)
 	}
 
 	reconciler := clusterReconciler{ControllerContext: controllerContext}

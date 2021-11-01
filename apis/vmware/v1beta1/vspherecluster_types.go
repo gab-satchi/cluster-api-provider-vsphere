@@ -21,6 +21,13 @@ import (
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 )
 
+const (
+	// ClusterFinalizer allows ReconcileVSphereCluster to clean up vSphere
+	// resources associated with VSphereCluster before removing it from the
+	// API server.
+	ClusterFinalizer = "vspherecluster.vmware.infrastructure.cluster.x-k8s.io"
+)
+
 // VSphereClusterSpec defines the desired state of VSphereCluster
 type VSphereClusterSpec struct {
 	ControlPlaneEndpoint clusterv1.APIEndpoint `json:"controlPlaneEndpoint"`
