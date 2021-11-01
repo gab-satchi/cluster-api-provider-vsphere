@@ -244,7 +244,7 @@ func setupVAPIControllers(ctx *context.ControllerManagerContext, mgr ctrlmgr.Man
 		return err
 	}
 
-	if err := controllers.AddClusterControllerToManager(ctx, mgr); err != nil {
+	if err := controllers.AddClusterControllerToManager(ctx, mgr, &v1beta1.VSphereCluster{}); err != nil {
 		return err
 	}
 	if err := controllers.AddMachineControllerToManager(ctx, mgr); err != nil {
