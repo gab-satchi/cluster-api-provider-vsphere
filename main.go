@@ -23,8 +23,10 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"os"
+	"reflect"
 	"time"
 
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/klog/v2"
 	"k8s.io/klog/v2/klogr"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
@@ -32,6 +34,7 @@ import (
 	ctrlsig "sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
 	"sigs.k8s.io/cluster-api-provider-vsphere/apis/v1beta1"
+	vmwarev1b1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
 	"sigs.k8s.io/cluster-api-provider-vsphere/controllers"
 	"sigs.k8s.io/cluster-api-provider-vsphere/feature"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/constants"
@@ -154,59 +157,29 @@ func main() {
 	// Create a function that adds all of the controllers and webhooks to the
 	// manager.
 	addToManager := func(ctx *context.ControllerManagerContext, mgr ctrlmgr.Manager) error {
-
-		if err := (&v1beta1.VSphereClusterTemplate{}).SetupWebhookWithManager(mgr); err != nil {
+		cluster := &v1beta1.VSphereCluster{}
+		gvr := v1beta1.GroupVersion.WithResource(reflect.TypeOf(cluster).Elem().Name())
+		_, err := mgr.GetRESTMapper().KindFor(gvr)
+		switch {
+		case err == nil:
+			if err := setupVAPIControllers(ctx, mgr); err != nil {
+				return err
+			}
+		case meta.IsNoMatchError(err):
+			setupLog.Info(fmt.Sprintf("CRD for %s not loaded, skipping.", gvr.String()))
+		default:
 			return err
 		}
 
-		if err := (&v1beta1.VSphereMachine{}).SetupWebhookWithManager(mgr); err != nil {
-			return err
-		}
-		if err := (&v1beta1.VSphereMachineList{}).SetupWebhookWithManager(mgr); err != nil {
-			return err
-		}
-
-		if err := (&v1beta1.VSphereMachineTemplate{}).SetupWebhookWithManager(mgr); err != nil {
-			return err
-		}
-		if err := (&v1beta1.VSphereMachineTemplateList{}).SetupWebhookWithManager(mgr); err != nil {
-			return err
-		}
-
-		if err := (&v1beta1.VSphereVM{}).SetupWebhookWithManager(mgr); err != nil {
-			return err
-		}
-		if err := (&v1beta1.VSphereVMList{}).SetupWebhookWithManager(mgr); err != nil {
-			return err
-		}
-
-		if err := (&v1beta1.VSphereDeploymentZone{}).SetupWebhookWithManager(mgr); err != nil {
-			return err
-		}
-		if err := (&v1beta1.VSphereDeploymentZoneList{}).SetupWebhookWithManager(mgr); err != nil {
-			return err
-		}
-
-		if err := (&v1beta1.VSphereFailureDomain{}).SetupWebhookWithManager(mgr); err != nil {
-			return err
-		}
-		if err := (&v1beta1.VSphereFailureDomainList{}).SetupWebhookWithManager(mgr); err != nil {
-			return err
-		}
-
-		if err := controllers.AddClusterControllerToManager(ctx, mgr); err != nil {
-			return err
-		}
-		if err := controllers.AddMachineControllerToManager(ctx, mgr); err != nil {
-			return err
-		}
-		if err := controllers.AddVMControllerToManager(ctx, mgr); err != nil {
-			return err
-		}
-		if err := controllers.AddVsphereClusterIdentityControllerToManager(ctx, mgr); err != nil {
-			return err
-		}
-		if err := controllers.AddVSphereDeploymentZoneControllerToManager(ctx, mgr); err != nil {
+		supervisorCluster := &vmwarev1b1.VSphereCluster{}
+		gvr = vmwarev1b1.GroupVersion.WithResource(reflect.TypeOf(supervisorCluster).Elem().Name())
+		_, err = mgr.GetRESTMapper().KindFor(gvr)
+		switch {
+		case err == nil:
+			setupLog.Info("loading controllers for supervisor type")
+		case meta.IsNoMatchError(err):
+			setupLog.Info(fmt.Sprintf("CRD for %s not loaded, skipping.", gvr.String()))
+		default:
 			return err
 		}
 
@@ -229,6 +202,64 @@ func main() {
 		setupLog.Error(err, "problem running controller manager")
 		os.Exit(1)
 	}
+}
+
+func setupVAPIControllers(ctx *context.ControllerManagerContext, mgr ctrlmgr.Manager) error {
+	if err := (&v1beta1.VSphereClusterTemplate{}).SetupWebhookWithManager(mgr); err != nil {
+		return err
+	}
+
+	if err := (&v1beta1.VSphereMachine{}).SetupWebhookWithManager(mgr); err != nil {
+		return err
+	}
+	if err := (&v1beta1.VSphereMachineList{}).SetupWebhookWithManager(mgr); err != nil {
+		return err
+	}
+
+	if err := (&v1beta1.VSphereMachineTemplate{}).SetupWebhookWithManager(mgr); err != nil {
+		return err
+	}
+	if err := (&v1beta1.VSphereMachineTemplateList{}).SetupWebhookWithManager(mgr); err != nil {
+		return err
+	}
+
+	if err := (&v1beta1.VSphereVM{}).SetupWebhookWithManager(mgr); err != nil {
+		return err
+	}
+	if err := (&v1beta1.VSphereVMList{}).SetupWebhookWithManager(mgr); err != nil {
+		return err
+	}
+
+	if err := (&v1beta1.VSphereDeploymentZone{}).SetupWebhookWithManager(mgr); err != nil {
+		return err
+	}
+	if err := (&v1beta1.VSphereDeploymentZoneList{}).SetupWebhookWithManager(mgr); err != nil {
+		return err
+	}
+
+	if err := (&v1beta1.VSphereFailureDomain{}).SetupWebhookWithManager(mgr); err != nil {
+		return err
+	}
+	if err := (&v1beta1.VSphereFailureDomainList{}).SetupWebhookWithManager(mgr); err != nil {
+		return err
+	}
+
+	if err := controllers.AddClusterControllerToManager(ctx, mgr); err != nil {
+		return err
+	}
+	if err := controllers.AddMachineControllerToManager(ctx, mgr); err != nil {
+		return err
+	}
+	if err := controllers.AddVMControllerToManager(ctx, mgr); err != nil {
+		return err
+	}
+	if err := controllers.AddVsphereClusterIdentityControllerToManager(ctx, mgr); err != nil {
+		return err
+	}
+	if err := controllers.AddVSphereDeploymentZoneControllerToManager(ctx, mgr); err != nil {
+		return err
+	}
+	return nil
 }
 
 func setupChecks(mgr ctrlmgr.Manager) {
