@@ -19,6 +19,7 @@ package controllers
 import (
 	"fmt"
 	"reflect"
+	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/services/vmoperator"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -84,6 +85,7 @@ func AddClusterControllerToManager(ctx *context.ControllerManagerContext, mgr ma
 		// TODO: initialize services
 		reconciler := supervisorClusterReconciler{
 			ControllerContext: controllerContext,
+			resourcePolicyService: vmoperator.RPService{},
 		}
 		return ctrl.NewControllerManagedBy(mgr).
 			Named(controllerNameShort).

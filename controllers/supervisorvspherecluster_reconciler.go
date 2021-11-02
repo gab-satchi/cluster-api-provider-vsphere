@@ -62,7 +62,7 @@ type supervisorClusterReconciler struct {
 // +kubebuilder:rbac:groups="",resources=persistentvolumeclaims,verbs=get;list;watch;update;create;delete
 // +kubebuilder:rbac:groups="",resources=persistentvolumeclaims/status,verbs=get;update;patch
 
-// TODO: GCM-2209: Remove once we have a version of CAPI with https://github.com/kubernetes-sigs/cluster-api/issues/1775 fixed
+// TODO: Remove once we have a version of CAPI with https://github.com/kubernetes-sigs/cluster-api/issues/1775 fixed
 // +kubebuilder:rbac:groups=infrastructure.cluster.vmware.com,resources=vspheremachinetemplates,verbs=get;list;delete
 // +kubebuilder:rbac:groups=bootstrap.cluster.x-k8s.io,resources=kubeadmconfigtemplates,verbs=get;list;delete;watch
 
@@ -75,6 +75,7 @@ func (r supervisorClusterReconciler) Reconcile(ctx goctx.Context, req ctrl.Reque
 	err := r.Client.Get(r, req.NamespacedName, vsphereCluster)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
+			r.Logger.V(4).Info("VSphereCluster not found, won't reconcile", "key", req.NamespacedName)
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err

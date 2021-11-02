@@ -12,6 +12,7 @@ require (
 	github.com/onsi/gomega v1.16.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.2.1
+	github.com/vmware-tanzu/net-operator-api v0.0.0-20210401185409-b0dc6c297707
 	github.com/vmware-tanzu/vm-operator-api v0.1.3
 	github.com/vmware/govmomi v0.27.1
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
