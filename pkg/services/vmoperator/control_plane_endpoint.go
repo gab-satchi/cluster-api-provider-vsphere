@@ -1,13 +1,23 @@
-// Copyright (c) 2019 VMware, Inc. All Rights Reserved.
-// SPDX-License-Identifier: Apache-2.0
+/*
+Copyright 2021 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 
 package vmoperator
 
 import (
 	"fmt"
-	infrav1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
-	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/context/vmware"
-	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/services"
 
 	"github.com/pkg/errors"
 	vmoprv1 "github.com/vmware-tanzu/vm-operator-api/api/v1alpha1"
@@ -16,14 +26,17 @@ import (
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	ctrlutil "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	infrav1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
+	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/context/vmware"
+	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/services"
 )
 
 const (
 	defaultAPIBindPort                   = 6443
 	controlPlaneServiceAPIServerPortName = "apiserver"
 
-	// These constants are also defined in Guest Cluster Cloud provider
-	// Kept the same for consistency with CAPW v1alpha1
 	clusterSelectorKey = "capw.vmware.com/cluster.name"
 	nodeSelectorKey    = "capw.vmware.com/cluster.role"
 	roleNode           = "node"
@@ -123,7 +136,7 @@ func (s CPService) createVMControlPlaneService(ctx *vmware.ClusterContext, annot
 
 	vmService := newVirtualMachineService(ctx)
 
-	_, err := infrautilv1.CreateOrUpdate(ctx, ctx.Client, vmService, func() error {
+	_, err := ctrlutil.CreateOrUpdate(ctx, ctx.Client, vmService, func() error {
 		vmService.Annotations = annotations
 		vmService.Spec = vmoprv1.VirtualMachineServiceSpec{
 			Type: serviceType,
@@ -137,13 +150,13 @@ func (s CPService) createVMControlPlaneService(ctx *vmware.ClusterContext, annot
 			},
 			Selector: clusterRoleVMLabels(ctx, true),
 		}
-		// Ensure that the VirtualMachineService is owned by the WCPCluster
+		// Ensure that the VirtualMachineService is owned by the VSphereCluster
 		vmService.OwnerReferences = []metav1.OwnerReference{
 			{
-				Name:       ctx.WCPCluster.Name,
+				Name:       ctx.VSphereCluster.Name,
 				APIVersion: infrav1.GroupVersion.String(),
-				Kind:       "WCPCluster",
-				UID:        ctx.WCPCluster.UID,
+				Kind:       "VSphereCluster",
+				UID:        ctx.VSphereCluster.UID,
 			},
 		}
 		return nil

@@ -24,8 +24,6 @@ import (
 
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/util"
-
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	clusterutilv1 "sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/cluster-api/util/annotations"
@@ -39,9 +37,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	infrav1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/v1beta1"
-	vmwarev1beta1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
+	vmwarev1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/context"
+	inframanager "sigs.k8s.io/cluster-api-provider-vsphere/pkg/manager"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/record"
+	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/services/vmoperator"
+	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/util"
 )
 
 // +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;patch;update
@@ -58,7 +59,7 @@ func AddClusterControllerToManager(ctx *context.ControllerManagerContext, mgr ma
 	switch clusterControlledType.(type) {
 	case *infrav1.VSphereCluster:
 		supervisorBased = false
-	case *vmwarev1beta1.VSphereCluster:
+	case *vmwarev1.VSphereCluster:
 		supervisorBased = true
 	}
 	clusterControlledTypeName := reflect.TypeOf(clusterControlledType).Elem().Name()
@@ -82,18 +83,23 @@ func AddClusterControllerToManager(ctx *context.ControllerManagerContext, mgr ma
 	}
 
 	if supervisorBased {
-		// TODO: initialize services
+		networkProvider, err := inframanager.GetNetworkProvider(ctx, mgr.GetConfig())
+		if err != nil {
+			return errors.Wrap(err, "failed to create a network provider")
+		}
 		reconciler := supervisorClusterReconciler{
-			ControllerContext: controllerContext,
+			ControllerContext:     controllerContext,
 			resourcePolicyService: vmoperator.RPService{},
+			controlPlaneService:   vmoperator.CPService{},
+			networkProvider:       networkProvider,
 		}
 		return ctrl.NewControllerManagedBy(mgr).
 			Named(controllerNameShort).
 			For(clusterControlledType).
 			Watches(
-				&source.Kind{Type: &vmwarev1beta1.VSphereMachine{}},
+				&source.Kind{Type: &vmwarev1.VSphereMachine{}},
 				handler.EnqueueRequestsFromMapFunc(func(o client.Object) []reconcile.Request {
-					vsphereMachine, ok := o.(*vmwarev1beta1.VSphereMachine)
+					vsphereMachine, ok := o.(*vmwarev1.VSphereMachine)
 					if !ok {
 						reconciler.Logger.Error(errors.New("did not get vspheremachine"), "got", fmt.Sprintf("%T", o))
 						return nil

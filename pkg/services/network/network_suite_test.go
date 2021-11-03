@@ -14,8 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package vmoperator
+package network_test
 
-const (
-	ControlPlaneVMClusterModuleGroupName = "control-plane-group"
+import (
+	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
+
+func TestNetworkProvider(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Network provider Suite")
+}

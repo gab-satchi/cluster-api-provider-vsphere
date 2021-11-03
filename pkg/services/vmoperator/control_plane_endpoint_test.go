@@ -1,20 +1,41 @@
-// Copyright (c) 2019 VMware, Inc. All Rights Reserved.
-// SPDX-License-Identifier: Apache-2.0
+/*
+Copyright 2021 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package vmoperator
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	netopv1 "github.com/vmware-tanzu/net-operator-api/api/v1alpha1"
 	vmoprv1 "github.com/vmware-tanzu/vm-operator-api/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	ncpv1 "sigs.k8s.io/cluster-api-provider-vsphere/external/ncp/api/v1alpha1"
+	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/util"
+
+	infrav1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
+	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/context/vmware"
+	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/services/network"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/util/conditions"
 )
 
-func getVirtualMachineService(cpService CPService, ctx *context.ClusterContext) *vmoprv1.VirtualMachineService {
+func getVirtualMachineService(cpService CPService, ctx *vmware.ClusterContext) *vmoprv1.VirtualMachineService {
 	vms := newVirtualMachineService(ctx)
 	nsname := types.NamespacedName{
 		Namespace: vms.Namespace,
@@ -28,31 +49,31 @@ func getVirtualMachineService(cpService CPService, ctx *context.ClusterContext) 
 	return vms
 }
 
-func createVnet(ctx *context.ClusterContext) {
-	vnet := &ncpv1alpha1.VirtualNetwork{
+func createVnet(ctx *vmware.ClusterContext) {
+	vnet := &ncpv1.VirtualNetwork{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: ctx.WCPCluster.Namespace,
-			Name:      network.GetNSXTVirtualNetworkName(ctx.WCPCluster.Name),
+			Namespace: ctx.VSphereCluster.Namespace,
+			Name:      network.GetNSXTVirtualNetworkName(ctx.VSphereCluster.Name),
 		},
 	}
 	Expect(ctx.Client.Create(ctx, vnet)).To(Succeed())
 }
 
-func createDefaultNetwork(ctx *context.ClusterContext) {
-	defaultNetwork := &netopv1alpha1.Network{
+func createDefaultNetwork(ctx *vmware.ClusterContext) {
+	defaultNetwork := &netopv1.Network{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "dummy-network",
-			Namespace: ctx.WCPCluster.Namespace,
+			Namespace: ctx.VSphereCluster.Namespace,
 			Labels:    map[string]string{network.CAPWDefaultNetworkLabel: "true"},
 		},
-		Spec: netopv1alpha1.NetworkSpec{
-			Type: netopv1alpha1.NetworkTypeVDS,
+		Spec: netopv1.NetworkSpec{
+			Type: netopv1.NetworkTypeVDS,
 		},
 	}
 	Expect(ctx.Client.Create(ctx, defaultNetwork)).To(Succeed())
 }
 
-func updateVMServiceWithVIP(cpService CPService, ctx *context.ClusterContext, vip string) {
+func updateVMServiceWithVIP(cpService CPService, ctx *vmware.ClusterContext, vip string) {
 	vmService := getVirtualMachineService(cpService, ctx)
 	vmService.Status.LoadBalancer.Ingress = []vmoprv1.LoadBalancerIngress{{IP: vip}}
 	err := ctx.Client.Status().Update(ctx, vmService)
@@ -78,9 +99,9 @@ var _ = Describe("ControlPlaneEndpoint Tests", func() {
 		expectedClusterRoleVMLabels map[string]string
 		expectedConditions          clusterv1.Conditions
 
-		cluster    *clusterv1.Cluster
-		wcpCluster *infrav1.WCPCluster
-		ctx        *context.ClusterContext
+		cluster        *clusterv1.Cluster
+		vsphereCluster *infrav1.VSphereCluster
+		ctx            *vmware.ClusterContext
 
 		apiEndpoint *clusterv1.APIEndpoint
 		vms         *vmoprv1.VirtualMachineService
@@ -97,8 +118,8 @@ var _ = Describe("ControlPlaneEndpoint Tests", func() {
 
 		// Create all necessary dependencies
 		cluster = util.CreateCluster(clusterName)
-		wcpCluster = util.CreateWcpCluster(clusterName)
-		ctx = util.CreateClusterContext(cluster, wcpCluster)
+		vsphereCluster = util.CreateVSphereCluster(clusterName)
+		ctx = util.CreateClusterContext(cluster, vsphereCluster)
 		expectedClusterRoleVMLabels = clusterRoleVMLabels(ctx, true)
 	})
 
@@ -128,7 +149,7 @@ var _ = Describe("ControlPlaneEndpoint Tests", func() {
 			}
 
 			for _, expectedCondition := range expectedConditions {
-				c := conditions.Get(ctx.WCPCluster, expectedCondition.Type)
+				c := conditions.Get(ctx.VSphereCluster, expectedCondition.Type)
 				Expect(c).NotTo(BeNil())
 				Expect(c.Status).To(Equal(expectedCondition.Status))
 				Expect(c.Reason).To(Equal(expectedCondition.Reason))
@@ -146,7 +167,7 @@ var _ = Describe("ControlPlaneEndpoint Tests", func() {
 			expectAPIEndpoint = false
 			expectVMS = false
 			apiEndpoint, err = cpService.ReconcileControlPlaneEndpointService(ctx, network.DummyNetworkProvider())
-			Expect(conditions.Get(ctx.WCPCluster, infrav1.LoadBalancerReadyCondition)).To(BeNil())
+			Expect(conditions.Get(ctx.VSphereCluster, infrav1.LoadBalancerReadyCondition)).To(BeNil())
 			verifyOutput()
 		})
 

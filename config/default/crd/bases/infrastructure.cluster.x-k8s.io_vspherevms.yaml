@@ -407,6 +407,10 @@ spec:
                   field is required at runtime for other controllers that read this
                   CRD as unstructured data.
                 type: boolean
+              retryAfter:
+                description: RetryAfter tracks the time we can retry queueing a task
+                format: date-time
+                type: string
               snapshot:
                 description: Snapshot is the name of the snapshot from which the VM
                   was cloned if LinkedMode is enabled.
@@ -813,6 +817,10 @@ spec:
                   field is required at runtime for other controllers that read this
                   CRD as unstructured data.
                 type: boolean
+              retryAfter:
+                description: RetryAfter tracks the time we can retry queueing a task
+                format: date-time
+                type: string
               snapshot:
                 description: Snapshot is the name of the snapshot from which the VM
                   was cloned if LinkedMode is enabled.
@@ -909,7 +917,8 @@ spec:
                 type: object
               datacenter:
                 description: Datacenter is the name or inventory path of the datacenter
-                  in which the virtual machine is created/located.
+                  in which the virtual machine is created/located. Defaults to * which
+                  selects the default datacenter.
                 type: string
               datastore:
                 description: Datastore is the name or inventory path of the datastore
@@ -1225,6 +1234,10 @@ spec:
                   field is required at runtime for other controllers that read this
                   CRD as unstructured data.
                 type: boolean
+              retryAfter:
+                description: RetryAfter tracks the time we can retry queueing a task
+                format: date-time
+                type: string
               snapshot:
                 description: Snapshot is the name of the snapshot from which the VM
                   was cloned if LinkedMode is enabled.

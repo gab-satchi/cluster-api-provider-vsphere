@@ -22,6 +22,8 @@ import (
 	"sync"
 	"time"
 
+	kerrors "k8s.io/apimachinery/pkg/util/errors"
+
 	"github.com/pkg/errors"
 	apiv1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -108,6 +110,11 @@ func (r clusterReconciler) Reconcile(ctx goctx.Context, req ctrl.Request) (_ ctr
 		}
 	}()
 
+
+	if err := setOwnerRefsOnVsphereMachines(clusterContext); err != nil {
+		return reconcile.Result{}, errors.Wrapf(err, "failed to set owner refs on VSphereMachine objects")
+	}
+
 	// Handle deleted clusters
 	if !vsphereCluster.DeletionTimestamp.IsZero() {
 		return r.reconcileDelete(clusterContext)
@@ -120,14 +127,39 @@ func (r clusterReconciler) Reconcile(ctx goctx.Context, req ctrl.Request) (_ ctr
 func (r clusterReconciler) reconcileDelete(ctx *context.ClusterContext) (reconcile.Result, error) {
 	ctx.Logger.Info("Reconciling VSphereCluster delete")
 
-	vsphereMachines, err := infrautilv1.GetVSphereMachinesInCluster(ctx, ctx.Client, ctx.VSphereCluster.Namespace, ctx.VSphereCluster.Name)
+
+	vsphereMachines, err := infrautilv1.GetVSphereMachinesInCluster(ctx, ctx.Client, ctx.Cluster.Namespace, ctx.Cluster.Name)
 	if err != nil {
 		return reconcile.Result{}, errors.Wrapf(err,
 			"unable to list VSphereMachines part of VSphereCluster %s/%s", ctx.VSphereCluster.Namespace, ctx.VSphereCluster.Name)
 	}
 
-	if len(vsphereMachines) > 0 {
-		ctx.Logger.Info("Waiting for VSphereMachines to be deleted", "count", len(vsphereMachines))
+	machineDeletionCount := 0
+	var deletionErrors []error
+	for _, vsphereMachine := range vsphereMachines {
+		// If the VSphereMachine is not owned by the CAPI Machine object because the machine object was deleted
+		// before setting the owner references, then proceed with the deletion of the VSphereMachine object.
+		// This is required until CAPI has a solution for https://github.com/kubernetes-sigs/cluster-api/issues/5483
+		if clusterutilv1.IsOwnedByObject(vsphereMachine, ctx.VSphereCluster) && len(vsphereMachine.OwnerReferences) == 1 {
+			machineDeletionCount++
+			// Remove the finalizer since VM creation wouldn't proceed
+			r.Logger.Info("Removing finalizer from VSphereMachine", "namespace", vsphereMachine.Namespace, "name", vsphereMachine.Name)
+			ctrlutil.RemoveFinalizer(vsphereMachine, infrav1.MachineFinalizer)
+			if err := r.Client.Update(ctx, vsphereMachine); err != nil {
+				return reconcile.Result{}, err
+			}
+			if err := r.Client.Delete(ctx, vsphereMachine); err != nil && !apierrors.IsNotFound(err) {
+				ctx.Logger.Error(err, "Failed to delete for VSphereMachine", "namespace", vsphereMachine.Namespace, "name", vsphereMachine.Name)
+				deletionErrors = append(deletionErrors, err)
+			}
+		}
+	}
+	if len(deletionErrors) > 0 {
+		return reconcile.Result{}, kerrors.NewAggregate(deletionErrors)
+	}
+
+	if len(vsphereMachines)-machineDeletionCount > 0 {
+		ctx.Logger.Info("Waiting for VSphereMachines to be deleted", "count", len(vsphereMachines)-machineDeletionCount)
 		return reconcile.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
@@ -403,6 +435,37 @@ func (r clusterReconciler) isControlPlaneInitialized(ctx *context.ClusterContext
 		return true
 	}
 	return conditions.IsTrue(ctx.Cluster, clusterv1.ControlPlaneInitializedCondition)
+}
+
+func setOwnerRefsOnVsphereMachines(ctx *context.ClusterContext) error {
+	vsphereMachines, err := infrautilv1.GetVSphereMachinesInCluster(ctx, ctx.Client, ctx.Cluster.Namespace, ctx.Cluster.Name)
+	if err != nil {
+		return errors.Wrapf(err,
+			"unable to list VSphereMachines part of VSphereCluster %s/%s", ctx.VSphereCluster.Namespace, ctx.VSphereCluster.Name)
+	}
+
+	var patchErrors []error
+	for _, vsphereMachine := range vsphereMachines {
+		patchHelper, err := patch.NewHelper(vsphereMachine, ctx.Client)
+		if err != nil {
+			patchErrors = append(patchErrors, err)
+			continue
+		}
+
+		vsphereMachine.SetOwnerReferences(clusterutilv1.EnsureOwnerRef(
+			vsphereMachine.OwnerReferences,
+			metav1.OwnerReference{
+				APIVersion: ctx.VSphereCluster.APIVersion,
+				Kind:       ctx.VSphereCluster.Kind,
+				Name:       ctx.VSphereCluster.Name,
+				UID:        ctx.VSphereCluster.UID,
+			}))
+
+		if err := patchHelper.Patch(ctx, vsphereMachine); err != nil {
+			patchErrors = append(patchErrors, err)
+		}
+	}
+	return kerrors.NewAggregate(patchErrors)
 }
 
 // controlPlaneMachineToCluster is a handler.ToRequestsFunc to be used
