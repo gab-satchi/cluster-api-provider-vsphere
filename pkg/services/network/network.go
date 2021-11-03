@@ -1,50 +1,20 @@
-<<<<<<< HEAD
 // Copyright (c) 2019 VMware, Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-=======
-/*
-Copyright 2021 The Kubernetes Authors.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 
 package network
 
 import (
 	"fmt"
-<<<<<<< HEAD
-	infrav1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
-	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/context/vmware"
-	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/services"
-
-	"github.com/pkg/errors"
-	"github.com/vmware-tanzu/vm-operator-api/api/v1alpha1"
-	netopv1alpha1 "github.com/vmware-tanzu/net-operator-api/api/v1alpha1"
-=======
 
 	"github.com/pkg/errors"
 	netopv1 "github.com/vmware-tanzu/net-operator-api/api/v1alpha1"
 	vmopv1 "github.com/vmware-tanzu/vm-operator-api/api/v1alpha1"
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-<<<<<<< HEAD
-=======
 	ctrlutil "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	infrav1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
@@ -52,7 +22,6 @@ import (
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/context/vmware"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/services"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/util"
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 )
 
 const (
@@ -64,11 +33,7 @@ const (
 	NetOpNetworkNameAnnotation = "netoperator.vmware.com/network-name"
 
 	// kube-system network is where supervisor control plane vms reside
-<<<<<<< HEAD
-	WCPSystemNamespace = "kube-system"
-=======
 	SystemNamespace = "kube-system"
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 )
 
 // dummyNetworkProvider doesn't provision network resource
@@ -91,11 +56,7 @@ func (np *dummyNetworkProvider) GetClusterNetworkName(ctx *vmware.ClusterContext
 	return "", nil
 }
 
-<<<<<<< HEAD
-func (np *dummyNetworkProvider) ConfigureVirtualMachine(ctx *vmware.ClusterContext, vm *v1alpha1.VirtualMachine) error {
-=======
 func (np *dummyNetworkProvider) ConfigureVirtualMachine(ctx *vmware.ClusterContext, vm *vmopv1.VirtualMachine) error {
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 	return nil
 }
 
@@ -140,17 +101,10 @@ func (np *netopNetworkProvider) ProvisionClusterNetwork(ctx *vmware.ClusterConte
 }
 
 // TODO: remove CAPW naming?
-<<<<<<< HEAD
-func (np *netopNetworkProvider) getDefaultClusterNetwork(ctx *vmware.ClusterContext) (*netopv1alpha1.Network, error) {
-	labels := map[string]string{CAPWDefaultNetworkLabel: "true"}
-
-	networkList := &netopv1alpha1.NetworkList{}
-=======
 func (np *netopNetworkProvider) getDefaultClusterNetwork(ctx *vmware.ClusterContext) (*netopv1.Network, error) {
 	labels := map[string]string{CAPWDefaultNetworkLabel: "true"}
 
 	networkList := &netopv1.NetworkList{}
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 	err := np.client.List(ctx, networkList, client.InNamespace(ctx.Cluster.Namespace), client.MatchingLabels(labels))
 	if err != nil {
 		return nil, err
@@ -166,11 +120,7 @@ func (np *netopNetworkProvider) getDefaultClusterNetwork(ctx *vmware.ClusterCont
 	}
 }
 
-<<<<<<< HEAD
-func (np *netopNetworkProvider) getClusterNetwork(ctx *vmware.ClusterContext) (*netopv1alpha1.Network, error) {
-=======
 func (np *netopNetworkProvider) getClusterNetwork(ctx *vmware.ClusterContext) (*netopv1.Network, error) {
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 	// A "NetworkName" can later be added to the TKG Spec, but currently we only have a preselected default.
 	return np.getDefaultClusterNetwork(ctx)
 }
@@ -193,11 +143,7 @@ func (np *netopNetworkProvider) GetVMServiceAnnotations(ctx *vmware.ClusterConte
 	return map[string]string{NetOpNetworkNameAnnotation: networkName}, nil
 }
 
-<<<<<<< HEAD
-func (np *netopNetworkProvider) ConfigureVirtualMachine(ctx *vmware.ClusterContext, vm *v1alpha1.VirtualMachine) error {
-=======
 func (np *netopNetworkProvider) ConfigureVirtualMachine(ctx *vmware.ClusterContext, vm *vmopv1.VirtualMachine) error {
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 	network, err := np.getClusterNetwork(ctx)
 	if err != nil {
 		return err
@@ -210,11 +156,7 @@ func (np *netopNetworkProvider) ConfigureVirtualMachine(ctx *vmware.ClusterConte
 		}
 	}
 
-<<<<<<< HEAD
-	vm.Spec.NetworkInterfaces = append(vm.Spec.NetworkInterfaces, v1alpha1.VirtualMachineNetworkInterface{
-=======
 	vm.Spec.NetworkInterfaces = append(vm.Spec.NetworkInterfaces, vmopv1.VirtualMachineNetworkInterface{
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 		NetworkName: network.Name,
 		NetworkType: string(network.Spec.Type),
 	})
@@ -223,11 +165,7 @@ func (np *netopNetworkProvider) ConfigureVirtualMachine(ctx *vmware.ClusterConte
 }
 
 func (np *netopNetworkProvider) VerifyNetworkStatus(ctx *vmware.ClusterContext, obj runtime.Object) error {
-<<<<<<< HEAD
-	_, ok := obj.(*netopv1alpha1.Network)
-=======
 	_, ok := obj.(*netopv1.Network)
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 	if !ok {
 		return fmt.Errorf("expected Net Operator Network but got %T", obj)
 	}
@@ -261,11 +199,7 @@ func GetNSXTVirtualNetworkName(clusterName string) string {
 	return fmt.Sprintf("%s-vnet", clusterName)
 }
 
-<<<<<<< HEAD
-func (np *nsxtNetworkProvider) verifyNSXTVirtualNetworkStatus(ctx *vmware.ClusterContext, vnet *ncpv1alpha1.VirtualNetwork) error {
-=======
 func (np *nsxtNetworkProvider) verifyNSXTVirtualNetworkStatus(ctx *vmware.ClusterContext, vnet *ncpv1.VirtualNetwork) error {
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 	clusterName := ctx.VSphereCluster.Name
 	namespace := ctx.VSphereCluster.Namespace
 	for _, condition := range vnet.Status.Conditions {
@@ -281,11 +215,7 @@ func (np *nsxtNetworkProvider) verifyNSXTVirtualNetworkStatus(ctx *vmware.Cluste
 }
 
 func (np *nsxtNetworkProvider) VerifyNetworkStatus(ctx *vmware.ClusterContext, obj runtime.Object) error {
-<<<<<<< HEAD
-	vnet, ok := obj.(*ncpv1alpha1.VirtualNetwork)
-=======
 	vnet, ok := obj.(*ncpv1.VirtualNetwork)
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 	if !ok {
 		return fmt.Errorf("expected NCP VirtualNetwork but got %T", obj)
 	}
@@ -300,22 +230,14 @@ func (np *nsxtNetworkProvider) ProvisionClusterNetwork(ctx *vmware.ClusterContex
 	ctx.Logger.V(2).Info("Provisioning ", "vnet", GetNSXTVirtualNetworkName(cluster.Name), "namespace", cluster.Namespace)
 	defer ctx.Logger.V(2).Info("Finished provisioning", "vnet", GetNSXTVirtualNetworkName(cluster.Name), "namespace", cluster.Namespace)
 
-<<<<<<< HEAD
-	vnet := &ncpv1alpha1.VirtualNetwork{
-=======
 	vnet := &ncpv1.VirtualNetwork{
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: cluster.Namespace,
 			Name:      GetNSXTVirtualNetworkName(cluster.Name),
 		},
 	}
 
-<<<<<<< HEAD
-	_, err := util.CreateOrUpdate(ctx, np.client, vnet, func() error {
-=======
 	_, err := ctrlutil.CreateOrUpdate(ctx, np.client, vnet, func() error {
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 		// add or update vnet spec only if FW is enabled and if WhitelistSourceRanges is empty
 		if np.disableFW != "true" && vnet.Spec.WhitelistSourceRanges == "" {
 			supportFW, err := util.NCPSupportFW(ctx, np.client)
@@ -326,11 +248,7 @@ func (np *nsxtNetworkProvider) ProvisionClusterNetwork(ctx *vmware.ClusterContex
 			// specify whitelist_source_ranges if needed and if NCP supports it
 			if supportFW {
 				// Find system namespace snat ip
-<<<<<<< HEAD
-				systemNSSnatIP, err := util.GetNamespaceNetSnatIP(ctx, np.client, WCPSystemNamespace)
-=======
 				systemNSSnatIP, err := util.GetNamespaceNetSnatIP(ctx, np.client, SystemNamespace)
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 				if err != nil {
 					ctx.Logger.Error(err, "failed to get Snat IP for kube-system")
 					return err
@@ -346,11 +264,7 @@ func (np *nsxtNetworkProvider) ProvisionClusterNetwork(ctx *vmware.ClusterContex
 		vnet.SetOwnerReferences([]metav1.OwnerReference{
 			{
 				APIVersion: infrav1.GroupVersion.String(),
-<<<<<<< HEAD
-				Kind:       "WCPCluster",
-=======
 				Kind:       "VSphereCluster",
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 				Name:       cluster.Name,
 				UID:        cluster.UID,
 			},
@@ -370,11 +284,7 @@ func (np *nsxtNetworkProvider) ProvisionClusterNetwork(ctx *vmware.ClusterContex
 
 // Returns the name of a valid cluster network if one exists
 func (np *nsxtNetworkProvider) GetClusterNetworkName(ctx *vmware.ClusterContext) (string, error) {
-<<<<<<< HEAD
-	vnet := &ncpv1alpha1.VirtualNetwork{}
-=======
 	vnet := &ncpv1.VirtualNetwork{}
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 	cluster := ctx.VSphereCluster
 	namespacedName := types.NamespacedName{
 		Namespace: cluster.Namespace,
@@ -396,11 +306,7 @@ func (np *nsxtNetworkProvider) GetVMServiceAnnotations(ctx *vmware.ClusterContex
 }
 
 // ConfigureVirtualMachine configures a VirtualMachine object based on the networking configuration
-<<<<<<< HEAD
-func (np *nsxtNetworkProvider) ConfigureVirtualMachine(ctx *vmware.ClusterContext, vm *v1alpha1.VirtualMachine) error {
-=======
 func (np *nsxtNetworkProvider) ConfigureVirtualMachine(ctx *vmware.ClusterContext, vm *vmopv1.VirtualMachine) error {
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 	nsxtClusterNetworkName := GetNSXTVirtualNetworkName(ctx.Cluster.Name)
 	for _, vnif := range vm.Spec.NetworkInterfaces {
 		if vnif.NetworkType == NSXTTypeNetwork && vnif.NetworkName == nsxtClusterNetworkName {
@@ -408,11 +314,7 @@ func (np *nsxtNetworkProvider) ConfigureVirtualMachine(ctx *vmware.ClusterContex
 			return nil
 		}
 	}
-<<<<<<< HEAD
-	vm.Spec.NetworkInterfaces = append(vm.Spec.NetworkInterfaces, v1alpha1.VirtualMachineNetworkInterface{
-=======
 	vm.Spec.NetworkInterfaces = append(vm.Spec.NetworkInterfaces, vmopv1.VirtualMachineNetworkInterface{
->>>>>>> 94ec69ec898a7c46dce3fae4884dbe7e1df5a104
 		NetworkName: nsxtClusterNetworkName,
 		NetworkType: NSXTTypeNetwork,
 	})
