@@ -55,6 +55,17 @@ GOVC := $(TOOLS_BIN_DIR)/govc
 KIND := $(TOOLS_BIN_DIR)/kind
 KUSTOMIZE := $(TOOLS_BIN_DIR)/kustomize
 TOOLING_BINARIES := $(CONTROLLER_GEN) $(CONVERSION_GEN) $(GINKGO) $(GOLANGCI_LINT) $(GOVC) $(KIND) $(KUSTOMIZE)
+INT_COV_FILE := integration-cover.out
+
+
+# Kind cluster name used in integration tests
+KIND_CLUSTER_NAME ?= kind-it-capw
+KIND_CLUSTER_INFO_DUMP_DIR ?= kind-cluster-info-dump
+
+ARTIFACTS_PATH 	     = ./artifacts
+LOCAL_DEPENDENCIES   = $(ARTIFACTS_PATH)/local-dependencies.yaml
+LOCAL_INFRASTRUCTURE = $(ARTIFACTS_PATH)/local-infrastructure.yaml
+
 
 # Set --output-base for conversion-gen if we are not within GOPATH
 ifneq ($(abspath $(ROOT_DIR)),$(shell go env GOPATH)/src/sigs.k8s.io/cluster-api-provider-vsphere)
@@ -111,10 +122,46 @@ help: ## Display this help
 ## Testing
 ## --------------------------------------
 
+prereqs:
+	@mkdir -p bin $(ARTIFACTS_PATH)
+
 .PHONY: test
 test: $(GOVC)
 	$(MAKE) generate lint-go
 	source ./hack/fetch_ext_bins.sh; fetch_tools; setup_envs; export GOVC_BIN_PATH=$(GOVC); go test -v ./apis/... ./controllers/... ./pkg/...
+
+.PHONY: test-integration
+test-integration: prereqs generate lint-go kind-cluster  ## Run integration tests
+	KUBECONFIG=$(KUBECONFIG) build/stage-integration-tests.sh $(INT_COV_FILE)
+
+.PHONY: kind-cluster-info
+kind-cluster-info: ## Print the name of the Kind cluster and its kubeconfig
+	@kind get clusters | grep -q "$(KIND_CLUSTER_NAME)"
+	@printf "kind cluster name:   %s\nkind cluster config: %s\n" "$(KIND_CLUSTER_NAME)" "$(KUBECONFIG)"
+	@printf "KUBECONFIG=%s\n" "$(KUBECONFIG)" >local.envvars
+
+
+.PHONY: kind-cluster
+kind-cluster: ## Create a kind cluster of name $(KIND_CLUSTER_NAME) for integration (if it does not exist yet)
+	@$(MAKE) --no-print-directory kind-cluster-info 2>/dev/null || \
+	kind create cluster --name "$(KIND_CLUSTER_NAME)"
+
+.PHONY: deploy-local-with-vmop
+deploy-local-with-vmop: prereqs kustomize-local-with-vmop
+deploy-local-with-vmop: ## Deploy controller in local cluster with vmOperator types
+	KUBECONFIG=$(KUBECONFIG) hack/deploy-local.sh $(LOCAL_DEPENDENCIES) $(LOCAL_INFRASTRUCTURE)
+
+.PHONY: kustomize-local-with-vmop
+kustomize-local-with-vmop: CONFIG_TYPE=local-with-vmop
+kustomize-local-with-vmop: YAML_DEPENDENCIES=$(LOCAL_DEPENDENCIES)
+kustomize-local-with-vmop: YAML_INFRASTRUCTURE=$(LOCAL_INFRASTRUCTURE)
+kustomize-local-with-vmop: kustomize-x
+
+.PHONY: kustomize-x
+kustomize-x: prereqs generate-manifests | $(KUSTOMIZE)
+	$(MAKE) -C config/deployments/$(CONFIG_TYPE) all
+	@cp -f config/deployments/$(CONFIG_TYPE)/dependency-components.yaml $(YAML_DEPENDENCIES)
+	@cp -f config/deployments/$(CONFIG_TYPE)/infrastructure-components.yaml $(YAML_INFRASTRUCTURE)
 
 .PHONY: e2e-image
 e2e-image: ## Build the e2e manager image
@@ -324,6 +371,11 @@ clean: ## Run all the clean targets
 	$(MAKE) clean-release
 	$(MAKE) clean-examples
 	$(MAKE) clean-build
+	$(MAKE) clean-artifacts
+
+.PHONY: clean-artifacts
+clean-artifacts:
+	rm -rf $(ARTIFACTS_PATH)
 
 .PHONY: clean-build
 clean-build:
