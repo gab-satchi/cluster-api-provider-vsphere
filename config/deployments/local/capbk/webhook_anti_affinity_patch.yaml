@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capi-kubeadm-bootstrap-controller-manager
+  namespace: capi-webhook-system
+spec:
+  template:
+    metadata:
+      labels:
+        name: capi-kubeadm-bootstrap-webhook
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: name
+                operator: In
+                values:
+                - capi-kubeadm-bootstrap-webhook
+            topologyKey: "kubernetes.io/hostname"

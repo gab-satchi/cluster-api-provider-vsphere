@@ -13,7 +13,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.2.1
 	github.com/vmware-tanzu/net-operator-api v0.0.0-20210401185409-b0dc6c297707
-	github.com/vmware-tanzu/vm-operator-api v0.1.4-0.20211029224930-6ec913d11bff
+	github.com/vmware-tanzu/vm-operator-api v0.1.4-0.20211029224930-6ec913d11bff //v0.1.3
 	github.com/vmware/govmomi v0.27.1
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f

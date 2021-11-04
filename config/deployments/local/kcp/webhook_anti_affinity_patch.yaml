@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capi-kubeadm-control-plane-controller-manager
+  namespace: capi-webhook-system
+spec:
+  template:
+    metadata:
+      labels:
+        name: capi-kubeadm-control-plane-webhook
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: name
+                operator: In
+                values:
+                - capi-kubeadm-control-plane-webhook
+            topologyKey: "kubernetes.io/hostname"

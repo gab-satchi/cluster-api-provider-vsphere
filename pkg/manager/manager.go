@@ -45,6 +45,17 @@ type Manager interface {
 
 	// GetContext returns the controller manager's context.
 	GetContext() *context.ControllerManagerContext
+
+	// GetControllerManagerNamespace returns the namespace in which the
+	// resource is located responsible for running the controller manager.
+	GetControllerManagerNamespace() string
+
+	// GetControllerManagerName returns the name of the controller manager.
+	GetControllerManagerName() string
+
+	// GetLeaderElectionID returns the leader election ID if leader election is
+	// enabled; otherwise an empty string is returned.
+	GetLeaderElectionID() string
 }
 
 // New returns a new CAPV controller manager.
@@ -70,6 +81,8 @@ func New(opts Options) (Manager, error) {
 	if err != nil {
 		podName = DefaultPodName
 	}
+
+	leaderElectionID := opts.PodName + "-runtime"
 
 	// Build the controller manager.
 	mgr, err := ctrl.NewManager(opts.KubeConfig, opts.Options)
@@ -106,14 +119,32 @@ func New(opts Options) (Manager, error) {
 	return &manager{
 		Manager: mgr,
 		ctx:     controllerManagerContext,
+		namespace: opts.PodNamespace,
+		name:             opts.PodName,
+		leaderElectionID: leaderElectionID,
 	}, nil
 }
 
 type manager struct {
 	ctrl.Manager
 	ctx *context.ControllerManagerContext
+	namespace        string
+	name             string
+	leaderElectionID string
 }
 
 func (m *manager) GetContext() *context.ControllerManagerContext {
 	return m.ctx
+}
+
+func (m *manager) GetControllerManagerNamespace() string {
+	return m.namespace
+}
+
+func (m *manager) GetControllerManagerName() string {
+	return m.name
+}
+
+func (m *manager) GetLeaderElectionID() string {
+	return m.leaderElectionID
 }

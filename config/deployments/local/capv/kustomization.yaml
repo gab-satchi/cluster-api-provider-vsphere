@@ -1,0 +1,74 @@
+namespace: capv-system
+namePrefix: capv-
+
+images:
+- name: gcr.io/cluster-api-provider-vsphere/release/manager:latest
+  newName: DEV_CONTROLLER_IMG
+  newTag: dev
+
+commonLabels:
+  cluster.x-k8s.io/v1beta1: v1beta1
+
+bases:
+# TODO: use supervisor instead
+  - ../../../supervisor
+#  - ../../../base
+  - ../../../webhook
+  - ../../../certmanager
+
+patches:
+- path: ./manager_webhook_patch.yaml
+- patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: --webhook-port=0
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: controller-manager
+    namespace: system
+#  - path: ./manager_anti_affinity_patch.yaml
+#  - path: ../../../default/replicas_patch.yaml
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      namespace: system
+#  - path: ../../../default/update_strategy_patch.yaml
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      namespace: system
+
+#  - path: ./webhook_anti_affinity_patch.yaml
+
+vars:
+  - name: CERTIFICATE_NAMESPACE # namespace of the certificate CR
+    objref:
+      kind: Certificate
+      group: cert-manager.io
+      version: v1
+      name: serving-cert # this name should match the one in certificate.yaml
+    fieldref:
+      fieldpath: metadata.namespace
+  - name: CERTIFICATE_NAME
+    objref:
+      kind: Certificate
+      group: cert-manager.io
+      version: v1
+      name: serving-cert # this name should match the one in certificate.yaml
+  - name: SERVICE_NAMESPACE # namespace of the service
+    objref:
+      kind: Service
+      version: v1
+      name: webhook-service
+    fieldref:
+      fieldpath: metadata.namespace
+  - name: SERVICE_NAME
+    objref:
+      kind: Service
+      version: v1
+      name: webhook-service
+

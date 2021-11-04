@@ -3,8 +3,6 @@ kind: Kustomization
 # Adds namespace to all resources.
 namespace: capv-system
 
-namePrefix: capv-
-
 commonLabels:
   cluster.x-k8s.io/provider: "infrastructure-vsphere"
 resources:

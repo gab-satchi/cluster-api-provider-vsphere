@@ -1,0 +1,177 @@
+namespace: vmware-system-capv
+
+#images:
+#- name: gcr.io/k8s-staging-cluster-api/kubeadm-bootstrap-controller
+#  newTag: v0.3.17
+
+resources:
+- ./manifest.yaml
+
+patches:
+- path: ./manager_anti_affinity_patch.yaml
+#- path: ../../../default/replicas_patch.yaml
+#  target:
+#    group: apps
+#    version: v1
+#    kind: Deployment
+#    name: capi-kubeadm-bootstrap-controller-manager
+#    namespace: capi-kubeadm-bootstrap-system
+- path: ./update_strategy_patch.yaml
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: capi-kubeadm-bootstrap-controller-manager
+    namespace: capi-kubeadm-bootstrap-system
+# Ensure the order of the containers so they're easier to patch
+#- path: ../../../default/manager_order_containers_patch.yaml
+#  target:
+#    group: apps
+#    version: v1
+#    kind: Deployment
+#    name: capi-kubeadm-bootstrap-controller-manager
+#    namespace: capi-kubeadm-bootstrap-system
+#- patch: |-
+#    - op: replace
+#      path: /spec/template/spec/containers/1/args/0
+#      value: --secure-listen-address=0.0.0.0:9845
+#    - op: replace
+#      path: /spec/template/spec/containers/1/ports/0/containerPort
+#      value: 9845
+#  target:
+#    group: apps
+#    version: v1
+#    kind: Deployment
+#    name: capi-kubeadm-bootstrap-controller-manager
+#    namespace: capi-kubeadm-bootstrap-system
+- patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/args/1
+      value: --metrics-bind-addr=127.0.0.1:8080
+    - op: remove
+      path: /spec/template/spec/containers/0/args/2
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: capi-kubeadm-bootstrap-controller-manager
+    namespace: capi-kubeadm-bootstrap-system
+#- path: ./service_metrics_port_patch.yaml
+
+  # NOTE: Patch the webhook deployment so it can be distinguished from the
+  # controller deployment and exist in the same namespace, per WCP
+  # requirements.
+#- patch: |-
+#    - op: replace
+#      path: /metadata/name
+#      value: capi-kubeadm-bootstrap-webhook
+#  target:
+#    group: apps
+#    version: v1
+#    kind: Deployment
+#    name: capi-kubeadm-bootstrap-controller-manager
+#    namespace: capi-webhook-system
+#- path: ./webhook_anti_affinity_patch.yaml
+#- path: ../../../default/replicas_patch.yaml
+#  target:
+#    group: apps
+#    version: v1
+#    kind: Deployment
+#    name: capi-kubeadm-bootstrap-controller-manager
+#    namespace: capi-webhook-system
+#- path: ../../../default/update_strategy_patch.yaml
+#  target:
+#    group: apps
+#    version: v1
+#    kind: Deployment
+#    name: capi-kubeadm-bootstrap-controller-manager
+#    namespace: capi-webhook-system
+# Ensure the order of the containers so they're easier to patch
+#- path: ../../../default/manager_order_containers_patch.yaml
+#  target:
+#    group: apps
+#    version: v1
+#    kind: Deployment
+#    name: capi-kubeadm-bootstrap-controller-manager
+#    namespace: capi-webhook-system
+#- patch: |-
+#    - op: replace
+#      path: /spec/template/spec/containers/0/args/1
+#      value: --webhook-port=9875
+#    - op: replace
+#      path: /spec/template/spec/containers/0/ports/0/containerPort
+#      value: 9875
+#  target:
+#    group: apps
+#    version: v1
+#    kind: Deployment
+#    name: capi-kubeadm-bootstrap-controller-manager
+#    namespace: capi-webhook-system
+#- patch: |-
+#    - op: replace
+#      path: /spec/template/spec/containers/1/args/0
+#      value: --secure-listen-address=0.0.0.0:9945
+#    - op: replace
+#      path: /spec/template/spec/containers/1/ports/0/containerPort
+#      value: 9945
+#  target:
+#    group: apps
+#    version: v1
+#    kind: Deployment
+#    name: capi-kubeadm-bootstrap-controller-manager
+#    namespace: capi-webhook-system
+#- patch: |-
+#    - op: replace
+#      path: /spec/template/spec/containers/0/args/0
+#      value: --metrics-addr=127.0.0.1:8185
+#    - op: replace
+#      path: /spec/template/spec/containers/1/args/1
+#      value: --upstream=http://127.0.0.1:8185/
+#  target:
+#    group: apps
+#    version: v1
+#    kind: Deployment
+#    name: capi-kubeadm-bootstrap-controller-manager
+#    namespace: capi-webhook-system
+
+  # NOTE: Patch all cert-manager injections since we can't supply variables
+  # when running Kustomize against the upstream for download
+- path: ./cert_injection_patch.yaml
+  target:
+    group: apiextensions.k8s.io
+    version: v1
+    kind: CustomResourceDefinition
+- patch: |-
+    - op: replace
+      path: /metadata/annotations/cert-manager.io~1inject-ca-from
+      value: vmware-system-capv/capi-kubeadm-bootstrap-serving-cert
+  target:
+    group: admissionregistration.k8s.io
+    version: v1
+- patch: |-
+    - op: replace
+      path: /spec/dnsNames
+      value:
+        - capi-kubeadm-bootstrap-webhook-service.vmware-system-capv.svc
+        - capi-kubeadm-bootstrap-webhook-service.vmware-system-capv.svc.cluster.local
+  target:
+    group: cert-manager.io
+    version: v1
+    kind: Certificate
+    name: capi-kubeadm-bootstrap-serving-cert
+    namespace: capi-kubeadm-bootstrap-system
+
+  # NOTE: Patch all CRDs to override any existing defaulted-values for
+  # `spec.preserveUnkownFields`. Older versions defaulted to "true" when not
+  # defined, which will impede our ability to set webhook conversions.
+  #
+  # This should be explicitly declared in the upstream and thus this patch
+  # removed once it has been.
+- patch: |-
+    - op: add
+      path: /spec/preserveUnknownFields
+      value: false
+  target:
+    group: apiextensions.k8s.io
+    version: v1
+    kind: CustomResourceDefinition

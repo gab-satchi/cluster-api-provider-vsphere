@@ -1,0 +1,5 @@
+bases:
+- ../../local/capv
+
+#resources:
+#  - ./node_network_config.yaml

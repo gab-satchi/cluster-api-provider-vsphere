@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: capi-kubeadm-bootstrap-controller-manager-metrics-service
+  namespace: capi-kubeadm-bootstrap-system
+spec:
+  ports:
+  - name: https
+    port: 9845
+    targetPort: https
+  - $patch: replace

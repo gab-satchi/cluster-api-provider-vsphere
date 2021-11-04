@@ -1,0 +1,6 @@
+- op: replace
+  path: /metadata/annotations/cert-manager.io~1inject-ca-from
+  value: vmware-system-capv/capi-kubeadm-bootstrap-serving-cert
+- op: replace
+  path: /spec/conversion/webhook/clientConfig/service/namespace
+  value: vmware-system-capv

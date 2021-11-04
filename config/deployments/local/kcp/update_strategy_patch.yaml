@@ -1,0 +1,8 @@
+# add an update strategy to allow updates/upgrades with multiple replicas
+- op: add
+  path: /spec/strategy
+  value:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate

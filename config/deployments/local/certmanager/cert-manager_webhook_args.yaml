@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cert-manager-webhook
+  namespace: cert-manager
+spec:
+  template:
+    spec:
+      containers:
+      - name: cert-manager
+        args:
+        - --v=2
+        - --secure-port=10450
+        - --dynamic-serving-ca-secret-namespace=vmware-system-cert-manager
+        - --dynamic-serving-ca-secret-name=cert-manager-webhook-ca
+        - --dynamic-serving-dns-names=cert-manager-webhook,cert-manager-webhook.vmware-system-cert-manager,cert-manager-webhook.vmware-system-cert-manager.svc
