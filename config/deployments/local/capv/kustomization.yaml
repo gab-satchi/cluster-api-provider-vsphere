@@ -1,0 +1,134 @@
+namespace: capv-system
+
+commonLabels:
+  cluster.x-k8s.io/v1beta1: v1beta1
+
+bases:
+  - ../../../default
+#  - ../../../webhook
+
+#patches:
+#  - path: ./manager_anti_affinity_patch.yaml
+#  - path: ../../../default/replicas_patch.yaml
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      namespace: system
+#  - path: ../../../default/update_strategy_patch.yaml
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      namespace: system
+#  # Ensure the order of the containers so they're easier to patch
+#  - path: ../../../default/manager_order_containers_patch.yaml
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      name: capw-controller-manager
+#      namespace: system
+#  - patch: |-
+#      - op: replace
+#        path: /spec/template/spec/containers/1/args/0
+#        value: --secure-listen-address=0.0.0.0:9846
+#      - op: replace
+#        path: /spec/template/spec/containers/1/ports/0/containerPort
+#        value: 9846
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      name: capw-controller-manager
+#      namespace: system
+#  - patch: |-
+#      - op: replace
+#        path: /spec/template/spec/containers/0/args/0
+#        value: --metrics-addr=127.0.0.1:8086
+#      - op: replace
+#        path: /spec/template/spec/containers/1/args/1
+#        value: --upstream=http://127.0.0.1:8086/
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      name: capw-controller-manager
+#      namespace: system
+#  - path: ./service_metrics_port_patch.yaml
+#
+#    # NOTE: Patch the webhook deployment so it can be distinguished from the
+#    # controller deployment and exist in the same namespace, per WCP
+#    # requirements.
+#  - patch: |-
+#      - op: replace
+#        path: /metadata/name
+#        value: capw-webhook
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      name: controller-manager
+#      namespace: capi-webhook-system
+#  - path: ./webhook_anti_affinity_patch.yaml
+#  - path: ../../../default/replicas_patch.yaml
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      name: controller-manager
+#      namespace: capi-webhook-system
+#  - path: ../../../default/update_strategy_patch.yaml
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      name: controller-manager
+#      namespace: capi-webhook-system
+#  # Ensure the order of the containers so they're easier to patch
+#  - path: ../../../default/manager_order_containers_patch.yaml
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      name: controller-manager
+#      namespace: capi-webhook-system
+#  - patch: |-
+#      - op: replace
+#        path: /spec/template/spec/containers/0/args/1
+#        value: --webhook-port=9876
+#      - op: replace
+#        path: /spec/template/spec/containers/0/ports/0/containerPort
+#        value: 9876
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      name: controller-manager
+#      namespace: capi-webhook-system
+#  - patch: |-
+#      - op: replace
+#        path: /spec/template/spec/containers/1/args/0
+#        value: --secure-listen-address=0.0.0.0:9946
+#      - op: replace
+#        path: /spec/template/spec/containers/1/ports/0/containerPort
+#        value: 9946
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      name: controller-manager
+#      namespace: capi-webhook-system
+#  - patch: |-
+#      - op: replace
+#        path: /spec/template/spec/containers/0/args/0
+#        value: --metrics-addr=127.0.0.1:8186
+#      - op: replace
+#        path: /spec/template/spec/containers/1/args/1
+#        value: --upstream=http://127.0.0.1:8186/
+#    target:
+#      group: apps
+#      version: v1
+#      kind: Deployment
+#      name: controller-manager
+#      namespace: capi-webhook-system

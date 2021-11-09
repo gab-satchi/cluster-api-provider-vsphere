@@ -18,6 +18,7 @@ package util
 
 import (
 	goctx "context"
+	"fmt"
 
 	infrav1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/context"
@@ -99,3 +100,10 @@ func CreateClusterContext(cluster *clusterv1.Cluster, vsphereCluster *infrav1.VS
 		VSphereCluster:    vsphereCluster,
 	}
 }
+
+// GetBootstrapConfigMapName returns the name of the bootstrap data ConfigMap
+// for a VM Operator VirtualMachine.
+func GetBootstrapConfigMapName(machineName string) string {
+	return fmt.Sprintf("%s-cloud-init", machineName)
+}
+

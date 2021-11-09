@@ -83,6 +83,12 @@ type Options struct {
 	// the manager's Options in order to explicitly decide what controllers
 	// and webhooks to add to the manager.
 	AddToManager AddToManagerFunc
+
+	// WatchNamespace is the namespace the controllers watch for changes. If
+	// no value is specified then all namespaces are watched.
+	WatchNamespace string `json:"watchNamespace,omitempty"`
+	MetricsAddr           string        `json:"metricsAddr,omitempty"`
+
 }
 
 func (o *Options) defaults() {
