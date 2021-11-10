@@ -28,9 +28,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -45,18 +45,14 @@ import (
 	"k8s.io/klog/klogr"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	bootstrapv1 "sigs.k8s.io/cluster-api/bootstrap/kubeadm/api/v1beta1"
-	//kubeadmv1beta1 "sigs.k8s.io/cluster-api/bootstrap/kubeadm/types/upstreamv1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	vmoprv1 "github.com/vmware-tanzu/vm-operator-api/api/v1alpha1"
 	infrav1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
-	//infrav1 "gitlab.eng.vmware.com/core-build/cluster-api-provider-wcp/api/v1alpha3"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/manager"
-	//"gitlab.eng.vmware.com/core-build/cluster-api-provider-wcp/pkg/cloud/wcp/manager"
 )
 
-// Set high log level for post-mortem analysis
 const (
 	loglevel                           = "5"
 	waitTimeSecsForExists              = 30
@@ -180,24 +176,24 @@ type Manifests struct {
 }
 
 type ClusterComponents struct {
-	Cluster    *clusterv1.Cluster
+	Cluster        *clusterv1.Cluster
 	VSphereCluster *infrav1.VSphereCluster
 }
 
 // ControlPlaneComponents contains the resources required to create a control
 // plane machine.
 type ControlPlaneComponents struct {
-	Machine       *clusterv1.Machine
-	VSphereMachine    *infrav1.VSphereMachine
-	KubeadmConfig *bootstrapv1.KubeadmConfig
+	Machine        *clusterv1.Machine
+	VSphereMachine *infrav1.VSphereMachine
+	KubeadmConfig  *bootstrapv1.KubeadmConfig
 }
 
 // WorkerComponents contains the resources required to create a
 // MachineDeployment.
 type WorkerComponents struct {
-	MachineDeployment     *clusterv1.MachineDeployment
-	VSphereMachineTemplate    *infrav1.VSphereMachineTemplate
-	KubeadmConfigTemplate *bootstrapv1.KubeadmConfigTemplate
+	MachineDeployment      *clusterv1.MachineDeployment
+	VSphereMachineTemplate *infrav1.VSphereMachineTemplate
+	KubeadmConfigTemplate  *bootstrapv1.KubeadmConfigTemplate
 }
 
 func TestCAPV(t *testing.T) {
@@ -429,7 +425,7 @@ func createClusterComponents(testNamespace string) *ClusterComponents {
 	}
 
 	return &ClusterComponents{
-		Cluster:    &cluster,
+		Cluster:        &cluster,
 		VSphereCluster: &vsphereCluster,
 	}
 }
@@ -612,9 +608,9 @@ func createWorkerComponents(testNamespace string) *WorkerComponents {
 	}
 
 	return &WorkerComponents{
-		MachineDeployment:     &machineDeployment,
-		VSphereMachineTemplate:    &vsphereMachineTemplate,
-		KubeadmConfigTemplate: &kubeadmConfigTemplate,
+		MachineDeployment:      &machineDeployment,
+		VSphereMachineTemplate: &vsphereMachineTemplate,
+		KubeadmConfigTemplate:  &kubeadmConfigTemplate,
 	}
 }
 

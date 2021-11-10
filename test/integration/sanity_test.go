@@ -19,19 +19,17 @@ package integration
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/google/uuid"
 	"k8s.io/utils/pointer"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 
 	vmoprv1 "github.com/vmware-tanzu/vm-operator-api/api/v1alpha1"
 
 	infrav1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
-	//infrav1 "gitlab.eng.vmware.com/core-build/cluster-api-provider-wcp/api/v1alpha3"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/manager"
 	infrautilv1 "sigs.k8s.io/cluster-api-provider-vsphere/pkg/util"
-	//infrautilv1 "gitlab.eng.vmware.com/core-build/cluster-api-provider-wcp/pkg/cloud/wcp/util"
 )
 
 // The purpose of this test is to start up a CAPI controller against a real API
@@ -69,27 +67,27 @@ var _ = Describe("Sanity tests", func() {
 		Expect(mf.ControlPlaneComponentsList).Should(HaveLen(1), "control plane must have exactly one machine")
 		controlPlane = mf.ControlPlaneComponentsList[0]
 
-		// CREATE the CAPI Cluster and WCPCluster resources.
+		// CREATE the CAPI Cluster and VSphereCluster resources.
 		createResource(mgr, clustersResource, mf.ClusterComponents.Cluster)
 		createResource(mgr, vsphereclustersResource, mf.ClusterComponents.VSphereCluster)
 
-		// ASSERT the CAPI Cluster and the WCPCluster resources eventually exist
-		// and that the WCPCluster has an OwnerRef that points to the CAPI Cluster.
+		// ASSERT the CAPI Cluster and the VSphereCluster resources eventually exist
+		// and that the VSphereCluster has an OwnerRef that points to the CAPI Cluster.
 		cluster := assertEventuallyExists(mgr, clustersResource, mf.ClusterComponents.Cluster.Name, nil)
 		clusterOwnerRef := toOwnerRef(cluster)
 		clusterOwnerRef.Controller = pointer.BoolPtr(true)
 		clusterOwnerRef.BlockOwnerDeletion = pointer.BoolPtr(true)
 		assertEventuallyExists(mgr, vsphereclustersResource, mf.ClusterComponents.Cluster.Name, clusterOwnerRef)
 
-		// CREATE the CAPI Machine, WCPMachine, and KubeadmConfig resources for
+		// CREATE the CAPI Machine, VSphereMachine, and KubeadmConfig resources for
 		// the control plane machine.
 		createResource(mgr, machinesResource, controlPlane.Machine)
 		createResource(mgr, vspheremachinesResource, controlPlane.VSphereMachine)
 		createResource(mgr, kubeadmconfigResources, controlPlane.KubeadmConfig)
 
-		// ASSERT the CAPI Machine, WCPMachine, and KubeadmConfig resources
+		// ASSERT the CAPI Machine, VSphereMachine, and KubeadmConfig resources
 		// for the control plane machine eventually exist and that the
-		// WCPMachine and KubeadmConfig resources have OwnerRefs that point to
+		// VSphereMachine and KubeadmConfig resources have OwnerRefs that point to
 		// the CAPI Machine.
 		machine := assertEventuallyExists(mgr, machinesResource, controlPlane.Machine.Name, nil)
 		machineOwnerRef := toOwnerRef(machine)
@@ -108,11 +106,11 @@ var _ = Describe("Sanity tests", func() {
 	})
 
 	JustAfterEach(func() {
-		// DELETE the CAPI Machine, WCPMachine, and KubeadmConfig resources for
+		// DELETE the CAPI Machine, VSphereMachine, and KubeadmConfig resources for
 		// the control plane machine.
 		deleteResource(mgr, machinesResource, controlPlane.Machine.Name, nil)
 
-		// ASSERT the CAPI Machine, WCPMachine, KubeadmConfig, VM
+		// ASSERT the CAPI Machine, VSphereMachine, KubeadmConfig, VM
 		// Operator VirtualMachine, and bootstrap data ConfigMap
 		// resources for the control plane machine are eventually
 		// deleted.
@@ -125,7 +123,7 @@ var _ = Describe("Sanity tests", func() {
 		// DELETE the CAPI Cluster.
 		deleteResource(mgr, clustersResource, mf.ClusterComponents.Cluster.Name, nil)
 
-		// ASSERT the CAPI Cluster and WCPCLuster are eventually deleted.
+		// ASSERT the CAPI Cluster and VSphereCLuster are eventually deleted.
 		assertEventuallyDoesNotExist(mgr, vsphereclustersResource, mf.ClusterComponents.Cluster.Name)
 		assertEventuallyDoesNotExist(mgr, clustersResource, mf.ClusterComponents.Cluster.Name)
 	})
@@ -145,7 +143,7 @@ var _ = Describe("Sanity tests", func() {
 			getResource(mgr, vspheremachinesResource, controlPlane.Machine.Name, vsphereMachine)
 
 			// ASSERT the VirtualMachine and bootstrap data ConfigMap resources
-			// eventually exist. Ensure ConfigMap has OwnerRef set to the WCPMachine.
+			// eventually exist. Ensure ConfigMap has OwnerRef set to the VSphereMachine.
 			vmObj := assertEventuallyExists(mgr, virtualmachinesResource, controlPlane.Machine.Name, nil)
 			assertEventuallyExists(mgr, configmapsResource, infrautilv1.GetBootstrapConfigMapName(controlPlane.Machine.Name), toControllerOwnerRef(vsphereMachine))
 			vm := &vmoprv1.VirtualMachine{}

@@ -1,0 +1,94 @@
+#resources:
+#  - ../../../certmanager
+
+#configurations:
+#  - kustomizeconfig.yaml
+#namespace: vmware-system-cert-manager
+#
+#resources:
+#- ./manifest.yaml
+##- ./limitrange.yaml
+#
+#patches:
+#- patch: |-
+#   - op: replace
+#     path: /metadata/name
+#     value: vmware-system-cert-manager
+#  target:
+#    version: v1
+#    kind: Namespace
+#    name: cert-manager
+#
+#- patch: |-
+#   - op: replace
+#     path: /metadata/annotations/cert-manager.io~1inject-ca-from-secret
+#     value: vmware-system-cert-manager/cert-manager-webhook-ca
+#  target:
+#    version: v1beta1
+#    group: admissionregistration.k8s.io
+#    kind: MutatingWebhookConfiguration
+#
+#- patch: |-
+#   - op: replace
+#     path: /metadata/annotations/cert-manager.io~1inject-ca-from-secret
+#     value: vmware-system-cert-manager/cert-manager-webhook-ca
+#  target:
+#    version: v1beta1
+#    group: admissionregistration.k8s.io
+#    kind: ValidatingWebhookConfiguration
+#
+#- patch: |-
+#    - op: replace
+#      path: /metadata/annotations/cert-manager.io~1inject-ca-from-secret
+#      value: vmware-system-cert-manager/cert-manager-webhook-ca
+#    - op: replace
+#      path: /spec/conversion/webhookClientConfig/service/namespace
+#      value: vmware-system-cert-manager
+#  target:
+#    version: v1beta1
+#    group: apiextensions.k8s.io
+#    kind: CustomResourceDefinition
+#
+#- patch: |-
+#   - op: replace
+#     path: /spec/template/spec/containers/0/args/2
+#     value: --leader-election-namespace=vmware-system-cert-manager
+#  target:
+#    version: v1
+#    kind: Deployment
+#    name: cert-manager
+#    namespace: cert-manager
+#
+#- patch: |-
+#   - op: replace
+#     path: /spec/template/spec/containers/0/args/1
+#     value: --leader-election-namespace=vmware-system-cert-manager
+#  target:
+#    version: v1
+#    kind: Deployment
+#    name: cert-manager-cainjector
+#    namespace: cert-manager
+#
+#- patch: |-
+#    - op: replace
+#      path: /spec/template/spec/containers/0/ports
+#      value:
+#        - name: https
+#          containerPort: 10450
+#  target:
+#    kind: Deployment
+#    name: cert-manager-webhook
+#    namespace: cert-manager
+#
+#- patch: |-
+#    - op: replace
+#      path: /spec/ports
+#      value:
+#        - name: https
+#          port: 443
+#          targetPort: 10450
+#  target:
+#    kind: Service
+#    name: cert-manager-webhook
+#    namespace: cert-manager
+#- path: ./cert-manager_webhook_args.yaml

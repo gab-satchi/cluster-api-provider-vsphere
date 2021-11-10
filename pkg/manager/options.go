@@ -86,9 +86,9 @@ type Options struct {
 
 	// WatchNamespace is the namespace the controllers watch for changes. If
 	// no value is specified then all namespaces are watched.
-	WatchNamespace string `json:"watchNamespace,omitempty"`
-	MetricsAddr           string        `json:"metricsAddr,omitempty"`
-
+	WatchNamespace        string `json:"watchNamespace,omitempty"`
+	MetricsAddr           string `json:"metricsAddr,omitempty"`
+	LeaderElectionEnabled bool   `json:"leaderElectionEnabled,omitempty"`
 }
 
 func (o *Options) defaults() {

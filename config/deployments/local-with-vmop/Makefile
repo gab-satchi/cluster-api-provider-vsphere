@@ -52,6 +52,5 @@ $(COMPONENTS): clean-infrastructure ## Generate the Kustomize configuration for 
 	@echo "---" >>$(INFRASTRUCTURE_COMPONENTS)
 
 .PHONY: all
-#all: clean $(COMPONENTS) certmanager ## Generate all Kustomize configuration
 all: clean $(COMPONENTS) ## Generate all Kustomize configuration
-#all: clean $(COMPONENTS)
+

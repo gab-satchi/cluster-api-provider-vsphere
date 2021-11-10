@@ -46,7 +46,6 @@ fi
 GOFLAGS="${GOFLAGS:-${INT_GOFLAGS-}}" go test ./apis/... ./controllers/... ./pkg/...
 
 # Run the Kind tests.
-# TODO: Aarti: Check if the integration tests need to be moved.
 GOFLAGS="${GOFLAGS:-${ENV_GOFLAGS-}}" go test ./test/integration/...
 
 # Merge the two coverage files.

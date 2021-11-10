@@ -19,7 +19,6 @@ package controllers
 import (
 	"fmt"
 	"reflect"
-	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/services/vmoperator"
 	"strings"
 
 	"github.com/pkg/errors"

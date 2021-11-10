@@ -62,7 +62,7 @@ func init() {
 
 	// use klog as the internal logger for this envtest environment.
 	log.SetLogger(logger)
-	// additionally force all of the controllers to use the Ginkgo logger.
+	// additionally force all the controllers to use the Ginkgo logger.
 	ctrl.SetLogger(logger)
 	// add logger for ginkgo
 	klog.SetOutput(ginkgo.GinkgoWriter)
