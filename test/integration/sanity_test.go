@@ -133,7 +133,7 @@ var _ = Describe("Sanity tests", func() {
 			testClusterName = "sanity-testcluster"
 		})
 
-		It("Check Basic VirtualMachine creation", func() {
+		FIt("Check Basic VirtualMachine creation", func() {
 			// GET the associated CAPI Machine.
 			machine := &clusterv1.Machine{}
 			getResource(mgr, machinesResource, controlPlane.Machine.Name, machine)

@@ -22,7 +22,8 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"golang.org/x/net/context"
+	"github.com/docker/distribution/context"
+	goctx "golang.org/x/net/context"
 	"math/rand"
 	"net"
 	"testing"
@@ -164,6 +165,8 @@ type TestManager struct {
 	manager.Manager
 	client dynamic.Interface
 	done   chan struct{}
+
+	cancelFunc goctx.CancelFunc
 }
 
 // Manifests contains the resources required to deploy a cluster with CAPV.
@@ -243,12 +246,16 @@ func startControllerManager(opts manager.Options) *TestManager {
 
 	// Start the CAPV controller manager.
 	done := make(chan struct{})
+	var mgrCancelFunc goctx.CancelFunc
 	go func() {
 		klog.Info("Starting the manager")
 		// TODO: Aarti change
 		//if err := mgr.Start(done); err != nil {
-		if err := mgr.Start(ctx.Background()); err != nil {
+		mgrCtx, mgrCancelFunc := goctx.WithCancel(mgr.GetContext())
+		err := mgr.Start(mgrCtx)
+		if err != nil {
 			klog.Fatal(err, "unable to run the manager")
+			mgrCancelFunc()
 		}
 	}()
 
@@ -258,13 +265,13 @@ func startControllerManager(opts manager.Options) *TestManager {
 	return &TestManager{
 		Manager: mgr,
 		client:  client,
-		done:    done,
+		cancelFunc: mgrCancelFunc,
 	}
 }
 
 func stopControllerManager(manager *TestManager) {
 	// Shutdown the manager.
-	close(manager.done)
+	manager.cancelFunc()
 
 	// Delete the test namespace.
 	err := manager.client.Resource(namespacesResource).Delete(manager.GetContext(), manager.GetControllerManagerNamespace(), metav1.DeleteOptions{})

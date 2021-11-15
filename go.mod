@@ -3,23 +3,20 @@ module sigs.k8s.io/cluster-api-provider-vsphere
 go 1.16
 
 require (
-	github.com/a8m/tree v0.0.0-20210414114729-ce3525c5c2ef // indirect
 	github.com/antihax/optional v1.0.0
 	github.com/go-logr/logr v0.4.0
 	github.com/google/gofuzz v1.2.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-version v1.3.0
-	github.com/jstemmer/go-junit-report v0.9.1 // indirect
-	github.com/kr/pretty v0.3.0 // indirect
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0
 	github.com/pkg/errors v0.9.1
-	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/spf13/cobra v1.2.1
 	github.com/vmware-tanzu/net-operator-api v0.0.0-20210401185409-b0dc6c297707
 	github.com/vmware-tanzu/vm-operator-api v0.1.3
 	github.com/vmware/govmomi v0.27.1
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
+	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
 	gopkg.in/gcfg.v1 v1.2.3
 	gopkg.in/warnings.v0 v0.1.2 // indirect
