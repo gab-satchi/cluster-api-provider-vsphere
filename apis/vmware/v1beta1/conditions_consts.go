@@ -45,3 +45,19 @@ const (
 	// WaitingForLoadBalancerIPReason is used when waiting for load balancer IP to exist
 	WaitingForLoadBalancerIPReason = "WaitingForLoadBalancerIP"
 )
+
+// Conditions and condition Reasons for VSphereMachine
+const (
+	// ConditionType VMProvisionedCondition is shared with infrav1.VSPhereMachine
+	// VMCreationFailedReason reports that creating VM CRD or corresponding bootstrap ConfigMap failed.
+	VMCreationFailedReason = "VMCreationFailed"
+	// VMProvisionStartedReason documents (Severity=Info) a Virtual Machine currently is in creation process.
+	VMProvisionStartedReason = "VMProvisionStarted"
+	// PoweringOnReason documents (Severity=Info) a Virtual Machine currently executing the power on sequence.
+	PoweringOnReason = "PoweringOn"
+	// WaitingForNetworkAddressReason (Severity=Info) documents a CAPWMachine waiting for the the machine network
+	// settings to be reported after machine being powered on.
+	WaitingForNetworkAddressReason = "WaitingForNetworkAddress"
+	// WaitingForBIOSUUIDReason (Severity=Info) documents a CAPWMachine waiting for the the machine to have a BIOS UUID.
+	WaitingForBIOSUUIDReason = "WaitingForBIOSUUID"
+)

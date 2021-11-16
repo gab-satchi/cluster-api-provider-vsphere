@@ -58,13 +58,15 @@ func AddClusterControllerToManager(ctx *context.ControllerManagerContext, mgr ma
 		supervisorBased = false
 	case *vmwarev1.VSphereCluster:
 		supervisorBased = true
+	default:
+		return errors.New(fmt.Sprintf("unexpected type %s for VSphereCluster controller", reflect.TypeOf(clusterControlledType)))
 	}
-	clusterControlledTypeName := reflect.TypeOf(clusterControlledType).Elem().Name()
 
 	var (
-		clusterControlledTypeGVK = infrav1.GroupVersion.WithKind(clusterControlledTypeName)
-		controllerNameShort      = fmt.Sprintf("%s-controller", strings.ToLower(clusterControlledTypeName))
-		controllerNameLong       = fmt.Sprintf("%s/%s/%s", ctx.Namespace, ctx.Name, controllerNameShort)
+		clusterControlledTypeName = reflect.TypeOf(clusterControlledType).Elem().Name()
+		clusterControlledTypeGVK  = infrav1.GroupVersion.WithKind(clusterControlledTypeName)
+		controllerNameShort       = fmt.Sprintf("%s-controller", strings.ToLower(clusterControlledTypeName))
+		controllerNameLong        = fmt.Sprintf("%s/%s/%s", ctx.Namespace, ctx.Name, controllerNameShort)
 	)
 	if supervisorBased {
 		controllerNameShort = fmt.Sprintf("%s-supervisor-controller", strings.ToLower(clusterControlledTypeName))

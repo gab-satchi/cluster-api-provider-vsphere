@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The Kubernetes Authors.
+Copyright 2021 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,55 +14,42 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package context
+package vmware
 
 import (
 	"fmt"
 
-	"github.com/go-logr/logr"
-	infrav1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/v1beta1"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/cluster-api/util/patch"
+
+	vmwarev1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
+	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/context"
 )
 
-type BaseMachineContext struct {
-	*ControllerContext
-	Logger  logr.Logger
-	Cluster *clusterv1.Cluster
-	Machine *clusterv1.Machine
-}
+// VMModifier allows a function to be passed to VM creation to modify its spec
+// The hook is loosely typed so as to allow for different VirtualMachine backends
+type VMModifier func(runtime.Object) (runtime.Object, error)
 
-func (c *BaseMachineContext) GetCluster() *clusterv1.Cluster {
-	return c.Cluster
-}
-
-func (c *BaseMachineContext) GetMachine() *clusterv1.Machine {
-	return c.Machine
-}
-
-// GetLogger returns this context's logger.
-func (c *BaseMachineContext) GetLogger() logr.Logger {
-	return c.Logger
-}
-
-// VIMMachineContext is a Go context used with a VSphereMachine.
-type VIMMachineContext struct {
-	*BaseMachineContext
+// SupervisorMachineContext is a Go context used with a VSphereMachine.
+type SupervisorMachineContext struct {
+	*context.BaseMachineContext
+	ClusterContext *ClusterContext
+	VSphereCluster *vmwarev1.VSphereCluster
+	VSphereMachine *vmwarev1.VSphereMachine
 	PatchHelper    *patch.Helper
-	VSphereCluster *infrav1.VSphereCluster
-	VSphereMachine *infrav1.VSphereMachine
+	VMModifiers    []VMModifier
 }
 
 // String returns VSphereMachineGroupVersionKind VSphereMachineNamespace/VSphereMachineName.
-func (c *VIMMachineContext) String() string {
+func (c *SupervisorMachineContext) String() string {
 	return fmt.Sprintf("%s %s/%s", c.VSphereMachine.GroupVersionKind(), c.VSphereMachine.Namespace, c.VSphereMachine.Name)
 }
 
 // Patch updates the object and its status on the API server.
-func (c *VIMMachineContext) Patch() error {
+func (c *SupervisorMachineContext) Patch() error {
 	return c.PatchHelper.Patch(c, c.VSphereMachine)
 }
 
-func (c *VIMMachineContext) GetVSphereMachine() VSphereMachine {
+func (c *SupervisorMachineContext) GetVSphereMachine() context.VSphereMachine {
 	return c.VSphereMachine
 }

@@ -27,6 +27,13 @@ import (
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/context"
 )
 
+// VSphereMachineService is used for vsphere VM lifecycle and syncing with VSphereMachine types.
+type VSphereMachineService interface {
+	ReconcileDelete(ctx context.MachineContext) error
+	SyncFailureReason(ctx context.MachineContext) (bool, error)
+	ReconcileNormal(ctx context.MachineContext) (bool, error)
+}
+
 // VirtualMachineService is a service for creating/updating/deleting virtual
 // machines on vSphere.
 type VirtualMachineService interface {

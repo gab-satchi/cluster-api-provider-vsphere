@@ -1,8 +1,5 @@
-//go:build tools
-// +build tools
-
 /*
-Copyright 2019 The Kubernetes Authors.
+Copyright 2021 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,16 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// This package imports things required by build scripts, to force `go mod` to see them as dependencies
-package tools
+package context
 
 import (
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
-	_ "github.com/onsi/ginkgo/ginkgo"
-	_ "github.com/vmware/govmomi"
-	_ "k8s.io/code-generator/cmd/conversion-gen"
-	_ "sigs.k8s.io/controller-tools/cmd/controller-gen"
-	_ "sigs.k8s.io/kind"
-	_ "sigs.k8s.io/kustomize/kustomize/v3"
-	_ "sigs.k8s.io/testing_frameworks/integration"
+	"github.com/go-logr/logr"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
+	"sigs.k8s.io/cluster-api/util/conditions"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+type MachineContext interface {
+	String() string
+	Patch() error
+	GetLogger() logr.Logger
+	GetVSphereMachine() VSphereMachine
+	GetCluster() *clusterv1.Cluster
+	GetMachine() *clusterv1.Machine
+}
+
+type VSphereMachine interface {
+	client.Object
+	conditions.Setter
+}

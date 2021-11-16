@@ -113,7 +113,6 @@ func (np *netopNetworkProvider) ProvisionClusterNetwork(ctx *vmware.ClusterConte
 	return nil
 }
 
-// TODO: remove CAPW naming?
 func (np *netopNetworkProvider) getDefaultClusterNetwork(ctx *vmware.ClusterContext) (*netopv1.Network, error) {
 	labels := map[string]string{CAPWDefaultNetworkLabel: "true"}
 

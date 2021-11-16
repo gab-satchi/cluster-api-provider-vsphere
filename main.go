@@ -249,7 +249,7 @@ func setupVAPIControllers(ctx *context.ControllerManagerContext, mgr ctrlmgr.Man
 	if err := controllers.AddClusterControllerToManager(ctx, mgr, &v1beta1.VSphereCluster{}); err != nil {
 		return err
 	}
-	if err := controllers.AddMachineControllerToManager(ctx, mgr); err != nil {
+	if err := controllers.AddMachineControllerToManager(ctx, mgr, &v1beta1.VSphereMachine{}); err != nil {
 		return err
 	}
 	if err := controllers.AddVMControllerToManager(ctx, mgr); err != nil {
@@ -265,7 +265,15 @@ func setupVAPIControllers(ctx *context.ControllerManagerContext, mgr ctrlmgr.Man
 }
 
 func setupSupervisorControllers(ctx *context.ControllerManagerContext, mgr ctrlmgr.Manager) error {
-	return controllers.AddClusterControllerToManager(ctx, mgr, &vmwarev1b1.VSphereCluster{})
+	if err := controllers.AddClusterControllerToManager(ctx, mgr, &vmwarev1b1.VSphereCluster{}); err != nil {
+		return err
+	}
+
+	if err := controllers.AddMachineControllerToManager(ctx, mgr, &vmwarev1b1.VSphereMachine{}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func setupChecks(mgr ctrlmgr.Manager) {

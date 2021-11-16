@@ -17,7 +17,7 @@ limitations under the License.
 package vmoperator
 
 import (
-	"fmt"
+	vmwareutil "sigs.k8s.io/cluster-api-provider-vsphere/pkg/util/vmware"
 
 	"github.com/pkg/errors"
 	vmoprv1 "github.com/vmware-tanzu/vm-operator-api/api/v1alpha1"
@@ -85,8 +85,7 @@ func (s RPService) createVirtualMachineSetResourcePolicy(ctx *vmware.ClusterCont
 					GroupName: ControlPlaneVMClusterModuleGroupName,
 				},
 				{
-					// TODO: assumes the name of the machine deployment
-					GroupName: fmt.Sprintf("%s-workers-0", ctx.Cluster.Name),
+					GroupName: vmwareutil.GetMachineDeploymentNameForCluster(ctx.Cluster),
 				},
 			},
 		}
