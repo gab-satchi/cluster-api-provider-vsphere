@@ -1,4 +1,4 @@
-package controllers_test
+package controllers_test_test
 
 import (
 	"reflect"

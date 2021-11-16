@@ -18,16 +18,16 @@ limitations under the License.
 package integration
 
 import (
-	ctx "context"
+	goctx "context"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/docker/distribution/context"
-	goctx "golang.org/x/net/context"
 	"math/rand"
 	"net"
 	"testing"
 	"time"
+
+	ctrlmgr "sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo"
@@ -51,6 +51,7 @@ import (
 
 	vmoprv1 "github.com/vmware-tanzu/vm-operator-api/api/v1alpha1"
 	infrav1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
+	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/context"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/manager"
 )
 
@@ -239,6 +240,11 @@ func startControllerManager(opts manager.Options) *TestManager {
 
 	// Create the namespace in which the controller should run.
 	createTestNamespace(client, &opts)
+
+	opts.AddToManager = func(managerContext *context.ControllerManagerContext, c ctrlmgr.Manager) error {
+		return nil
+	}
+
 	// Create a new CAPV controller manager.
 	mgr, err := manager.New(opts)
 	Expect(err).NotTo(HaveOccurred())
@@ -262,8 +268,8 @@ func startControllerManager(opts manager.Options) *TestManager {
 	Expect(waitForCacheToSync(mgr, done)).ShouldNot(HaveOccurred(), "Cache should have sync'd")
 
 	return &TestManager{
-		Manager: mgr,
-		client:  client,
+		Manager:    mgr,
+		client:     client,
 		cancelFunc: mgrCancelFunc,
 	}
 }
@@ -291,7 +297,7 @@ func createTestNamespace(client dynamic.Interface, opts *manager.Options) {
 		},
 	}
 	input := toUnstructured(controllerNamespace.Name, controllerNamespace, false)
-	_, err := client.Resource(namespacesResource).Create(context.Background(), input, metav1.CreateOptions{})
+	_, err := client.Resource(namespacesResource).Create(goctx.Background(), input, metav1.CreateOptions{})
 	if err != nil {
 		if !apierrors.IsAlreadyExists(err) {
 			Expect(err).ShouldNot(HaveOccurred())
@@ -311,7 +317,7 @@ func waitForCacheToSync(mgr ctrl.Manager, done chan struct{}) error {
 		default:
 			time.Sleep(time.Second * 1)
 		}
-		if mgr.GetCache().WaitForCacheSync(context.Background()) {
+		if mgr.GetCache().WaitForCacheSync(goctx.Background()) {
 			return nil
 		}
 		if count == 15 {
@@ -365,15 +371,6 @@ func generateVirtualMachineImage() *vmoprv1.VirtualMachineImage {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        dummyVirtualMachineImageName,
 			Annotations: annotations,
-		},
-		Spec: vmoprv1.VirtualMachineImageSpec{
-			ImageID: "blah",
-			ProviderRef: vmoprv1.ContentProviderReference{
-				APIVersion: "",
-				Kind:       "",
-				Name:       "",
-				Namespace:  "",
-			},
 		},
 	}
 }
@@ -640,18 +637,18 @@ func createNonNamespacedResource(manager *TestManager, resource schema.GroupVers
 
 func createResource(manager *TestManager, resource schema.GroupVersionResource, obj runtimeObjectWithName) {
 	input := toUnstructured(obj.GetName(), obj, false)
-	_, err := manager.client.Resource(resource).Namespace(manager.GetControllerManagerNamespace()).Create(manager.GetContext(), input, metav1.CreateOptions{})
+	_, err := manager.client.Resource(resource).Namespace(obj.GetNamespace()).Create(manager.GetContext(), input, metav1.CreateOptions{})
 	Expect(err).NotTo(HaveOccurred(), "Error creating %s %s/%s", resource, obj.GetNamespace(), obj.GetName())
 }
 
-func deleteResource(manager *TestManager, resource schema.GroupVersionResource, name string, propagationPolicy *metav1.DeletionPropagation) {
+func deleteResource(manager *TestManager, resource schema.GroupVersionResource, name, namespace string, propagationPolicy *metav1.DeletionPropagation) {
 	deleteOptions := metav1.DeleteOptions{PropagationPolicy: propagationPolicy}
-	err := manager.client.Resource(resource).Namespace(manager.GetControllerManagerNamespace()).Delete(manager.GetContext(), name, deleteOptions)
+	err := manager.client.Resource(resource).Namespace(namespace).Delete(manager.GetContext(), name, deleteOptions)
 	Expect(err).NotTo(HaveOccurred(), "Error deleting %s %s", resource, name)
 }
 
-func getResource(manager *TestManager, resource schema.GroupVersionResource, name string, obj runtime.Object) {
-	output, err := manager.client.Resource(resource).Namespace(manager.GetControllerManagerNamespace()).Get(manager.GetContext(), name, metav1.GetOptions{})
+func getResource(manager *TestManager, resource schema.GroupVersionResource, name, namespace string, obj runtime.Object) {
+	output, err := manager.client.Resource(resource).Namespace(namespace).Get(manager.GetContext(), name, metav1.GetOptions{})
 	Expect(err).NotTo(HaveOccurred(), "Error getting %s %s", resource, name)
 	toStructured(name, obj, output)
 }
@@ -743,7 +740,7 @@ func assertEventuallyDoesNotExist(manager *TestManager, resource schema.GroupVer
 
 func assertConsistentlyDoesNotExist(manager *TestManager, resource schema.GroupVersionResource, name string) {
 	ConsistentlyWithOffset(1, func() (bool, error) {
-		_, err := manager.client.Resource(resource).Namespace(manager.GetControllerManagerNamespace()).Get(ctx.Background(), name, metav1.GetOptions{})
+		_, err := manager.client.Resource(resource).Namespace(manager.GetControllerManagerNamespace()).Get(goctx.Background(), name, metav1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				return true, nil
@@ -757,7 +754,7 @@ func assertConsistentlyDoesNotExist(manager *TestManager, resource schema.GroupV
 func assertEventuallyEvents(manager *TestManager, obj runtimeObjectWithName, reason string) {
 	EventuallyWithOffset(1, func() (bool, error) {
 		listOptions := metav1.ListOptions{Limit: 200}
-		output, err := manager.client.Resource(eventsResource).Namespace(manager.GetControllerManagerNamespace()).List(ctx.Background(), listOptions)
+		output, err := manager.client.Resource(eventsResource).Namespace(manager.GetControllerManagerNamespace()).List(goctx.Background(), listOptions)
 		if err != nil {
 			return false, nil
 		}
@@ -802,10 +799,10 @@ func assertVirtualMachineState(manager *TestManager, machine *clusterv1.Machine,
 
 // assertClusterEventuallyGetsControlPlaneEndpoint ensures that the cluster
 // receives a control plane endpoint that matches the expected IP address
-func assertClusterEventuallyGetsControlPlaneEndpoint(manager *TestManager, clusterName string, ipAddress string) {
+func assertClusterEventuallyGetsControlPlaneEndpoint(manager *TestManager, clusterName, clusterNs string, ipAddress string) {
 	EventuallyWithOffset(1, func() bool {
 		vsphereCluster := &infrav1.VSphereCluster{}
-		getResource(manager, vsphereclustersResource, clusterName, vsphereCluster)
+		getResource(manager, vsphereclustersResource, clusterName, clusterNs, vsphereCluster)
 		// If the control plane endpoint is undefined, return false
 		if vsphereCluster.Spec.ControlPlaneEndpoint.IsZero() {
 			return false
@@ -868,9 +865,9 @@ func toControllerOwnerRef(obj canBeReferenced) *metav1.OwnerReference {
 	}
 }
 
-func setIPAddressOnMachine(manager *TestManager, machineName, ipAddress string) {
+func setIPAddressOnMachine(manager *TestManager, machineName, machineNs, ipAddress string) {
 	vsphereMachine := &infrav1.VSphereMachine{}
-	getResource(manager, vspheremachinesResource, machineName, vsphereMachine)
+	getResource(manager, vspheremachinesResource, machineName, machineNs, vsphereMachine)
 	vsphereMachine.Status.IPAddr = ipAddress
 	updateResourceStatus(manager, vspheremachinesResource, vsphereMachine)
 }

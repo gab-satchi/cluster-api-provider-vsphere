@@ -1,4 +1,4 @@
-package controllers_test
+package controllers_test_test
 
 import (
 	"context"
@@ -55,14 +55,14 @@ func TestAPIs(t *testing.T) {
 		[]Reporter{printer.NewlineReporter{}})
 }
 
-func TestAPIsLB(t *testing.T) {
-	isLB = true
-	RegisterFailHandler(Fail)
-
-	RunSpecsWithDefaultAndCustomReporters(t,
-		"Controller Suite",
-		[]Reporter{printer.NewlineReporter{}})
-}
+//func TestAPIsLB(t *testing.T) {
+//	isLB = true
+//	RegisterFailHandler(Fail)
+//
+//	RunSpecsWithDefaultAndCustomReporters(t,
+//		"Controller Suite",
+//		[]Reporter{printer.NewlineReporter{}})
+//}
 
 func getTestEnv() (*envtest.Environment, *rest.Config) {
 	localTestEnv := &envtest.Environment{

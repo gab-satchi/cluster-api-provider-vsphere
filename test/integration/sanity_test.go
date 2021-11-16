@@ -17,7 +17,10 @@ limitations under the License.
 package integration
 
 import (
+	goctx "context"
 	"fmt"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo"
@@ -51,8 +54,14 @@ var _ = Describe("Sanity tests", func() {
 		// Start the controller.
 		mgrOpts.PodName = fmt.Sprintf("sanity-test-controller-%s", uuid.New())
 		mgr = startControllerManager(*mgrOpts)
-		testNamespace := mgr.GetControllerManagerNamespace()
-
+		//testNamespace := mgr.GetControllerManagerNamespace()
+		testNamespace := fmt.Sprintf("test-ns-%s", uuid.New())
+		ns := &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: testNamespace,
+			},
+		}
+		Expect(mgr.GetClient().Create(goctx.Background(), ns)).To(Succeed())
 		By("Creating a dummy VM Image")
 		dummyVMImage := generateVirtualMachineImage()
 		createNonNamespacedResource(mgr, virtualmachineimageResource, dummyVMImage)
@@ -108,7 +117,7 @@ var _ = Describe("Sanity tests", func() {
 	JustAfterEach(func() {
 		// DELETE the CAPI Machine, VSphereMachine, and KubeadmConfig resources for
 		// the control plane machine.
-		deleteResource(mgr, machinesResource, controlPlane.Machine.Name, nil)
+		deleteResource(mgr, machinesResource, controlPlane.Machine.Name, controlPlane.Machine.Namespace, nil)
 
 		// ASSERT the CAPI Machine, VSphereMachine, KubeadmConfig, VM
 		// Operator VirtualMachine, and bootstrap data ConfigMap
@@ -121,7 +130,7 @@ var _ = Describe("Sanity tests", func() {
 		assertEventuallyDoesNotExist(mgr, machinesResource, controlPlane.Machine.Name)
 
 		// DELETE the CAPI Cluster.
-		deleteResource(mgr, clustersResource, mf.ClusterComponents.Cluster.Name, nil)
+		deleteResource(mgr, clustersResource, mf.ClusterComponents.Cluster.Name, mf.ClusterComponents.Cluster.Namespace, nil)
 
 		// ASSERT the CAPI Cluster and VSphereCLuster are eventually deleted.
 		assertEventuallyDoesNotExist(mgr, vsphereclustersResource, mf.ClusterComponents.Cluster.Name)
@@ -136,11 +145,11 @@ var _ = Describe("Sanity tests", func() {
 		FIt("Check Basic VirtualMachine creation", func() {
 			// GET the associated CAPI Machine.
 			machine := &clusterv1.Machine{}
-			getResource(mgr, machinesResource, controlPlane.Machine.Name, machine)
+			getResource(mgr, machinesResource, controlPlane.Machine.Name, controlPlane.Machine.Namespace, machine)
 
 			// GET the associated VSphereMachine.
 			vsphereMachine := &infrav1.VSphereMachine{}
-			getResource(mgr, vspheremachinesResource, controlPlane.Machine.Name, vsphereMachine)
+			getResource(mgr, vspheremachinesResource, controlPlane.Machine.Name, controlPlane.Machine.Namespace, vsphereMachine)
 
 			// ASSERT the VirtualMachine and bootstrap data ConfigMap resources
 			// eventually exist. Ensure ConfigMap has OwnerRef set to the VSphereMachine.
