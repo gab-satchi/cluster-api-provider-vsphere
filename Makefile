@@ -180,7 +180,7 @@ lint: ## Run all the lint targets
 	$(MAKE) lint-markdown
 	$(MAKE) lint-shell
 
-GOLANGCI_LINT_FLAGS ?= --fast=true
+GOLANGCI_LINT_FLAGS ?= --fast=true --skip-dirs=external
 .PHONY: lint-go
 lint-go: $(GOLANGCI_LINT) ## Lint codebase
 	$(GOLANGCI_LINT) run -v $(GOLANGCI_LINT_FLAGS)

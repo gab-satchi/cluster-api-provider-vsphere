@@ -22,6 +22,8 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
+	netopv1 "github.com/vmware-tanzu/net-operator-api/api/v1alpha1"
+	vmoprv1 "github.com/vmware-tanzu/vm-operator-api/api/v1alpha1"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	bootstrapv1 "sigs.k8s.io/cluster-api/bootstrap/kubeadm/api/v1beta1"
@@ -31,6 +33,8 @@ import (
 	infrav1a4 "sigs.k8s.io/cluster-api-provider-vsphere/apis/v1alpha4"
 	infrav1b1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/v1beta1"
 	vmwarev1b1 "sigs.k8s.io/cluster-api-provider-vsphere/apis/vmware/v1beta1"
+	ncpv1 "sigs.k8s.io/cluster-api-provider-vsphere/external/ncp/api/v1alpha1"
+	topologyv1 "sigs.k8s.io/cluster-api-provider-vsphere/external/tanzu-topology/api/v1alpha1"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/context"
 	"sigs.k8s.io/cluster-api-provider-vsphere/pkg/record"
 )
@@ -56,6 +60,10 @@ func New(opts Options) (Manager, error) {
 	_ = infrav1b1.AddToScheme(opts.Scheme)
 	_ = bootstrapv1.AddToScheme(opts.Scheme)
 	_ = vmwarev1b1.AddToScheme(opts.Scheme)
+	_ = vmoprv1.AddToScheme(opts.Scheme)
+	_ = ncpv1.AddToScheme(opts.Scheme)
+	_ = netopv1.AddToScheme(opts.Scheme)
+	_ = topologyv1.AddToScheme(opts.Scheme)
 	// +kubebuilder:scaffold:scheme
 
 	podName, err := os.Hostname()
