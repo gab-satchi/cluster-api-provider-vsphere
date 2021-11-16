@@ -92,7 +92,7 @@ func GetNetworkProvider(ctx *context.ControllerManagerContext, cfg *rest.Config)
 	return network.DummyNetworkProvider(), nil
 }
 
-// getNodeNetworkCMData will attempt to find the config map in vmware-system-capw namespace and determine its data
+// getNodeNetworkCMData will attempt to find the config map in vmware-system-capv namespace and determine its data
 func getNodeNetworkCMData(ctx *context.ControllerManagerContext, cfg *rest.Config) (map[string]string, error) {
 	client := kubernetes.NewForConfigOrDie(cfg)
 	configMap, err := client.CoreV1().ConfigMaps(NodeNetworkCM.Namespace).Get(ctx, NodeNetworkCM.Name, metav1.GetOptions{})

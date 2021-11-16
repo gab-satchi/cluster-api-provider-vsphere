@@ -239,7 +239,6 @@ func startControllerManager(opts manager.Options) *TestManager {
 
 	// Create the namespace in which the controller should run.
 	createTestNamespace(client, &opts)
-
 	// Create a new CAPV controller manager.
 	mgr, err := manager.New(opts)
 	Expect(err).NotTo(HaveOccurred())
@@ -366,6 +365,15 @@ func generateVirtualMachineImage() *vmoprv1.VirtualMachineImage {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        dummyVirtualMachineImageName,
 			Annotations: annotations,
+		},
+		Spec: vmoprv1.VirtualMachineImageSpec{
+			ImageID: "blah",
+			ProviderRef: vmoprv1.ContentProviderReference{
+				APIVersion: "",
+				Kind:       "",
+				Name:       "",
+				Namespace:  "",
+			},
 		},
 	}
 }

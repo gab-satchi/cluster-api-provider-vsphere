@@ -483,8 +483,9 @@ github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510/go.mod h1:pupxD2MaaD3
 github.com/google/uuid v1.0.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-github.com/google/uuid v1.2.0 h1:qJYtXnJRWmpe7m/3XlyhrsLrEURqHRM2kxzoxXqyUDs=
 github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
+github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/googleapis/gax-go/v2 v2.0.4/go.mod h1:0Wqv26UfaUD9n4G6kQubkQ+KchISgw+vpHVxEJEs9eg=
 github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5mhpdKc/us6bOk=
 github.com/googleapis/gax-go/v2 v2.1.0/go.mod h1:Q3nei7sK6ybPYH7twZdmQpAd1MKb7pfu6SK+H1/DsU0=
@@ -849,8 +850,10 @@ github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df/go.mod h1:JP3t17
 github.com/vishvananda/netns v0.0.0-20200728191858-db3c7e526aae/go.mod h1:DD4vA1DwXk04H54A1oHXtwZmA0grkVMdPxx/VGLCah0=
 github.com/vmware-tanzu/net-operator-api v0.0.0-20210401185409-b0dc6c297707 h1:2onys8tWlQh7DFiOz6+68AwJdW9EBOEv6RTKzwh1x7A=
 github.com/vmware-tanzu/net-operator-api v0.0.0-20210401185409-b0dc6c297707/go.mod h1:pDB0pUiFYufuP3lUkQX9fZ67PYnKvqBpDcJN3mSrw5U=
-github.com/vmware-tanzu/vm-operator-api v0.1.3 h1:4vxewu0jAN3fSoCBI6FhjmRGJ7ci0R2WNu/I6hacTYs=
-github.com/vmware-tanzu/vm-operator-api v0.1.3/go.mod h1:mubK0QMyaA2TbeAmGsu2GVfiqDFppNUAUqoMPoKFgzM=
+github.com/vmware-tanzu/vm-operator-api v0.1.4-0.20210207035136-b33d09a68236 h1:zYQhP6/LVWnLEB+wa2qGpTNt73zwMZh7uQy8KAR6F84=
+github.com/vmware-tanzu/vm-operator-api v0.1.4-0.20210207035136-b33d09a68236/go.mod h1:mubK0QMyaA2TbeAmGsu2GVfiqDFppNUAUqoMPoKFgzM=
+github.com/vmware-tanzu/vm-operator-api v0.1.4-0.20211029224930-6ec913d11bff h1:ThuEcNdWY5aXymrx0iOYhkIDwAQhZnOwXyEQ776lepI=
+github.com/vmware-tanzu/vm-operator-api v0.1.4-0.20211029224930-6ec913d11bff/go.mod h1:mubK0QMyaA2TbeAmGsu2GVfiqDFppNUAUqoMPoKFgzM=
 github.com/vmware/govmomi v0.27.1 h1:Rf3o1btFrkJa9be5KtgJ4CyOO8mbFnBxmNtAVHNyFes=
 github.com/vmware/govmomi v0.27.1/go.mod h1:daTuJEcQosNMXYJOeku0qdBJP9SOLLWB3Mqz8THtv6o=
 github.com/vmware/vmw-guestinfo v0.0.0-20170707015358-25eff159a728/go.mod h1:x9oS4Wk2s2u4tS29nEaDLdzvuHdB19CvSGJjPgkZJNk=

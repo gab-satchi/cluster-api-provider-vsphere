@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/antihax/optional v1.0.0
+	github.com/docker/distribution v2.7.1+incompatible
 	github.com/go-logr/logr v0.4.0
 	github.com/google/gofuzz v1.2.0
 	github.com/google/uuid v1.3.0
@@ -13,7 +14,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.2.1
 	github.com/vmware-tanzu/net-operator-api v0.0.0-20210401185409-b0dc6c297707
-	github.com/vmware-tanzu/vm-operator-api v0.1.3
+	github.com/vmware-tanzu/vm-operator-api v0.1.4-0.20211029224930-6ec913d11bff //v0.1.3
 	github.com/vmware/govmomi v0.27.1
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023

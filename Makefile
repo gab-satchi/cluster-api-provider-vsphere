@@ -76,6 +76,8 @@ endif
 MANIFEST_ROOT ?= ./config
 CRD_ROOT ?= $(MANIFEST_ROOT)/default/crd/bases
 SUPERVISOR_CRD_ROOT ?= $(MANIFEST_ROOT)/supervisor/crd
+VMOP_CRD_ROOT ?= $(MANIFEST_ROOT)/deployments/local-with-vmop/vmoperator/config/crd/bases
+
 WEBHOOK_ROOT ?= $(MANIFEST_ROOT)/webhook
 RBAC_ROOT ?= $(MANIFEST_ROOT)/rbac
 GC_KIND ?= true
@@ -296,7 +298,11 @@ generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 	$(CONTROLLER_GEN) \
 		paths=./apis/vmware/v1beta1 \
 		crd:crdVersions=v1 \
-		output:crd:dir=$(SUPERVISOR_CRD_ROOT) \
+		output:crd:dir=$(SUPERVISOR_CRD_ROOT)
+#	$(CONTROLLER_GEN) \
+#		paths=github.com/vmware-tanzu/vm-operator-api/api/... \
+#		crd:crdVersions=v1 \
+#		output:crd:dir=$(VMOP_CRD_ROOT)
 ## --------------------------------------
 ## Release
 ## --------------------------------------
