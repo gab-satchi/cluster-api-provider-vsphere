@@ -18,6 +18,7 @@ bases:
 
 patches:
 - path: ./manager_webhook_patch.yaml
+- path: ./node_network_config_info.yaml
 - patch: |-
     - op: add
       path: /spec/template/spec/containers/0/args/-
